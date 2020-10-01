@@ -29,31 +29,31 @@ Total amount of rows is 1,067,371 before cleaning and aggregating.
 Detailed Plan 
 -------------
 1.	Data Cleaning and Exploration
-  a.	Data cleaning, aggregation to monthly level
-  b.	Exploratory Data Analysis
-  c.	Outlier analysis & selecting products to make forecasts on
-  d.	Calculating of further KPIs (revenue, revenue per product/invoice/client/country)
+    a.	Data cleaning, aggregation to monthly level
+    b.	Exploratory Data Analysis
+    c.	Outlier analysis & selecting products to make forecasts on
+    d.	Calculating of further KPIs (revenue, revenue per product/invoice/client/country)
   
 2.	Customer Segmentation (RFM)
-  a.	Classification based on Recency, Frequency, and Monetary (RFM)
-  b.	B2B and B2C classification clusters
-  c.	K-means on top of RFM to cluster the clients
+    a.	Classification based on Recency, Frequency, and Monetary (RFM)
+    b.	B2B and B2C classification clusters
+    c.	K-means on top of RFM to cluster the clients
   
 3.	Demand Forecasting (ARIMA)
-  a.	Choosing of a cross validation method
-  b.	Derivation of prediction window and product choice
-  c.	N-month-ahead forecasts (inventory and finance-oriented)
-  d.	Accuracy tests (R-squared, RMSE, MAE, MAPE)
+    a.	Choosing of a cross validation method
+    b.	Derivation of prediction window and product choice
+    c.	N-month-ahead forecasts (inventory and finance-oriented)
+    d.	Accuracy tests (R-squared, RMSE, MAE, MAPE)
   
 4.	Optimal Price Optimization to Maximize Revenue
-  a.	Product and customer segment choice (based on ABC/XYZ analysis)
-  b.	Mathematical baseline (sets, parameters, decision variables, constraints, objective function)
-  c.	Optimization based on linear programming, Rglpk/lpsolve, and price elasticities from the ARIMA model coefficients
+    a.	Product and customer segment choice (based on ABC/XYZ analysis)
+    b.	Mathematical baseline (sets, parameters, decision variables, constraints, objective function)
+    c.	Optimization based on linear programming, Rglpk/lpsolve, and price elasticities from the ARIMA model coefficients
+    
 5.	Analytics Dashboards (shiny + shinydashboard)
-
-  a.	ABC/XYZ analysis
-  b.	Customer profiles and segmentation results
-  c.	Order flow and demand forecast 
+    a.	ABC/XYZ analysis
+    b.	Customer profiles and segmentation results
+    c.	Order flow and demand forecast 
 
 Tags
 ----
