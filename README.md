@@ -17,12 +17,12 @@ Usually, business data with any price information is almost impossible to find. 
 
 - Invoice: Invoice level, indicating the basket of a customer
 - StockCode: Unique product identifier, with 4,631 unique products
--	Description: Product description in text form 
--	Quantity: Sales quantity, with returns as negative values
--	InvoiceDate: Datetime in the minute level, from 2009-12-01 10:06 to 2011-12-09 9:57
--	Price: Unit price in pounds
--	Customer ID: Unique ID for each customer, with 23% have a missing value
--	Country: Country of the customer, 43 unique values
+- Description: Product description in text form 
+- Quantity: Sales quantity, with returns as negative values
+- InvoiceDate: Datetime in the minute level, from 2009-12-01 10:06 to 2011-12-09 9:57
+- Price: Unit price in pounds
+- Customer ID: Unique ID for each customer, with 23% have a missing value
+- Country: Country of the customer, 43 unique values
 
 Total amount of rows is 1,067,371 before cleaning and aggregating.
 
