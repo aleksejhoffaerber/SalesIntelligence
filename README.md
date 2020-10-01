@@ -35,32 +35,28 @@ Detailed Plan
     4.	Calculating of further KPIs (revenue, revenue per product/invoice/client/country)
   
 2.	Customer Segmentation (RFM)
-    a.	Classification based on Recency, Frequency, and Monetary (RFM)
-    b.	B2B and B2C classification clusters
-    c.	K-means on top of RFM to cluster the clients
+    1.	Classification based on Recency, Frequency, and Monetary (RFM)
+    2.	B2B and B2C classification clusters
+    3.	K-means on top of RFM to cluster the clients
   
 3.	Demand Forecasting (ARIMA)
-    a.	Choosing of a cross validation method
-    b.	Derivation of prediction window and product choice
-    c.	N-month-ahead forecasts (inventory and finance-oriented)
-    d.	Accuracy tests (R-squared, RMSE, MAE, MAPE)
+    1.	Choosing of a cross validation method
+    2.	Derivation of prediction window and product choice
+    3.	N-month-ahead forecasts (inventory and finance-oriented)
+    4.	Accuracy tests (R-squared, RMSE, MAE, MAPE)
   
 4.	Optimal Price Optimization to Maximize Revenue
-    a.	Product and customer segment choice (based on ABC/XYZ analysis)
-    b.	Mathematical baseline (sets, parameters, decision variables, constraints, objective function)
-    c.	Optimization based on linear programming, Rglpk/lpsolve, and price elasticities from the ARIMA model coefficients
+    1.	Product and customer segment choice (based on ABC/XYZ analysis)
+    2.	Mathematical baseline (sets, parameters, decision variables, constraints, objective function)
+    3.	Optimization based on linear programming, Rglpk/lpsolve, and price elasticities from the ARIMA model coefficients
     
 5.	Analytics Dashboards (shiny + shinydashboard)
-    a.	ABC/XYZ analysis
-    b.	Customer profiles and segmentation results
-    c.	Order flow and demand forecast 
+    1.	ABC/XYZ analysis
+    2.	Customer profiles and segmentation results
+    3.	Order flow and demand forecast 
 
 Tags
 ----
 retailer, optimization, segmentation, forecasting, visualization, interactive, git, shiny, dashboard
 
-1. Item 1
-1. Item 2
-1. Item 3
-   1. Item 3a
-   1. Item 3b
+
