@@ -29,10 +29,10 @@ Total amount of rows is 1,067,371 before cleaning and aggregating.
 Detailed Plan 
 -------------
 1.	Data Cleaning and Exploration
-    a.	Data cleaning, aggregation to monthly level
-    b.	Exploratory Data Analysis
-    c.	Outlier analysis & selecting products to make forecasts on
-    d.	Calculating of further KPIs (revenue, revenue per product/invoice/client/country)
+    1.	Data cleaning, aggregation to monthly level
+    2.	Exploratory Data Analysis
+    3.	Outlier analysis & selecting products to make forecasts on
+    4.	Calculating of further KPIs (revenue, revenue per product/invoice/client/country)
   
 2.	Customer Segmentation (RFM)
     a.	Classification based on Recency, Frequency, and Monetary (RFM)
