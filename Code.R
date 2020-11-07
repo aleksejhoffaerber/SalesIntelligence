@@ -15,7 +15,6 @@ library(lubridate)
 library(zoo)
 library(scales)
 
-
 #### Data Cleaning and Exploration ####
 
 ### Load the data (generic) ####
@@ -46,7 +45,6 @@ for(i in seq_along(files)) {
 }
 
 ### Data Horizon (24 months per product per country) ####
-
 # Aggregation based on single products (StockCode: 5 digits)
 data_monthly <- raw_prices %>%
   group_by(Date,StockCode,Country) %>%
@@ -61,7 +59,6 @@ data_monthly <- raw_prices %>%
   filter(C >= 24) %>%
   select(-C)
 
-
 # Derive number of unique clients per prod/month/country
 raw_prices %>%
   select(Date,StockCode,Country,`Customer ID`) %>%
@@ -73,7 +70,6 @@ raw_prices %>%
   arrange(StockCode,Country,Date) -> data_monthly
 
 ### Exploratory Data Analysis ####
-
 # Just for our use / can be deleted
 cbind(length(unique(data_monthly$StockCode)),
       length(unique(data_monthly$Country)),
@@ -107,7 +103,6 @@ data_monthly %>%
 print(sum.country)
 
 # Price Variation within Country
-
 # Density - Free Scales
 data_monthly %>%
   ggplot(., aes(x=Price, fill=Country)) + 
