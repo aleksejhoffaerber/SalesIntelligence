@@ -1,148 +1,39 @@
-##### Group 1 - BAN 400 ####
-
-###############################################################################
-################### Sales Intelligence ########################################
-###############################################################################
-
-rm(list = ls())
-
-##### Libraries ####
-library(tidyverse)
-library(readr)
-library(Metrics)
-library(magrittr)
-library(lubridate)
-library(zoo)
+library(fable)
+library(purrr)
 library(scales)
+library(tsibble)
+library(Metrics)
+library(stringr)
+library(lubridate)
+library(tidyverse)
+library(data.table)
 
-#### Data Cleaning and Exploration ####
+# Data reading and cleaning -----------------------------------------------
 
-### Load the data (generic) ####
-files <- list.files("Data/",pattern = "*.csv") # Files to load
+# Get paths of all input files and load them
+files <- paste0("Data/", list.files("Data/", pattern = "*.csv"))
 
-# Data Table
-# Cleaning & Joining
-raw_prices <- tibble(Invoice = character(),
-                     StockCode = character(),
-                     Description = character(),
-                     Quantity = numeric(),
-                     InvoiceDate = as.Date(as.character()),
-                     Date = as.Date(as.character()),
-                     Price = as.numeric(),
-                     `Customer ID` = as.numeric(),
-                     Country = as.character())
+data_by_invoice <- map(files,
+                       ~fread(.x) %>% 
+                         as_tibble()) %>% 
+  reduce(bind_rows)
 
-for(i in seq_along(files)) {
-  read_csv(paste("Data/",files[i],sep = "")) %>%
-    separate(.,InvoiceDate,c("InvoiceDate","Time"),sep = " ") %>% # Separates Date from Time
-    mutate(InvoiceDate = as.Date(InvoiceDate),
-           Date = as.yearmon(paste(year(InvoiceDate),month(InvoiceDate)),"%Y %m"), # Year & Month
-           StockCode = substr(StockCode,1,5)) %>% # Remove Color Variation
-    filter(is.na(`Customer ID`)==F & Price > 0 & Quantity > 0) %>% # Removes errors / non-commercial actions
-    filter(grepl("^[[:alpha:]]",StockCode)==F) %>% # Removes non - commercial actions (missing serial nr.)
-    select(-Time) %>%
-    rbind(raw_prices,.) -> raw_prices
-}
 
-### Data Horizon (24 months per product per country) ####
-# Aggregation based on single products (StockCode: 5 digits)
-data_monthly <- raw_prices %>%
-  group_by(Date,StockCode,Country) %>%
-  summarise(Invoices = n(),
-            Price = mean(Price),
-            Quantity = sum(Quantity)) %>%
-  ungroup() %>%
-  mutate(Revenue = Price*Quantity) %>%
-  group_by(Country,StockCode) %>% # Count Product / Country occurrences 
-  mutate(C = n()) %>%
-  ungroup() %>%
-  filter(C >= 24) %>%
-  select(-C)
-
-# Derive number of unique clients per prod/month/country
-raw_prices %>%
-  select(Date,StockCode,Country,`Customer ID`) %>%
-  unique() %>%
-  group_by(Date,StockCode,Country) %>%
-  summarise(Unique_Clients = n()) %>%
-  right_join(.,data_monthly) %>%
-  ungroup() %>%
-  arrange(StockCode,Country,Date) -> data_monthly
-
-### Exploratory Data Analysis ####
-# Just for our use / can be deleted
-cbind(length(unique(data_monthly$StockCode)),
-      length(unique(data_monthly$Country)),
-      length(unlist(unique(data_monthly[,2:3])))/2) %>%
-  as.data.frame() %>%
-  rename(Uni_Prod = V1,
-         Uni_Cnt = V2,
-         Uni_Cnt_Prod = V3) -> Uni_Summary
-print(Uni_Summary)
-
-# Summary Stats - Country 
-sum.country <- data_monthly %>%
-  group_by(Country) %>%
-  summarise(N = n(),
-            Inv = sum(Invoices),
-            Price_Min = min(Price),
-            Price_Max = max(Price),
-            Price = weighted.mean(Price,Invoices),
-            Quantity = sum(Quantity),
-            Revenue = sum(Revenue))
-
-data_monthly %>%
-  select(Country,StockCode) %>%
-  unique() %>%
-  group_by(Country) %>%
-  summarise(Uni_Prod = n()) %>%
-  ungroup() %>%
-  merge(sum.country,.) %>%
-  select(Country,N,Uni_Prod,everything())-> sum.country
-
-print(sum.country)
-
-# Price Variation within Country
-# Density - Free Scales
-data_monthly %>%
-  ggplot(., aes(x=Price, fill=Country)) + 
-  geom_density() +
-  facet_wrap(~Country, scales = "free") +
-  theme_minimal() +
-  xlab("Price") +
-  ylab("Density") +
-  ggtitle("Price Density Distribution") +
-  theme(plot.title = element_text(hjust=0.5)) -> p1
-
-# Density - Fixed Scales
-data_monthly %>%
-  ggplot(., aes(x=Price, fill=Country)) + 
-  geom_density() +
-  facet_wrap(~Country, scales = "fixed") +
-  theme_minimal() +
-  xlab("Price") +
-  ylab("Density") +
-  ggtitle("Price Density Distribution") +
-  theme(plot.title = element_text(hjust=0.5)) -> p2
-
-# Box plot
-data_monthly %>%
-  ggplot(., aes(x=Country, y=Price,fill=Country)) + 
-  geom_boxplot() +
-  theme_minimal() +
-  xlab("Price") +
-  ylab("Density") +
-  ggtitle("Box Plot") +
-  theme(plot.title = element_text(hjust=0.5)) -> p3
-
-# Price Variation within Country and Product
-  ggplot(data_monthly, aes(x=StockCode, y=Price)) + 
-  geom_point() +
-  facet_wrap(~Country, scales = "free") +
-  theme_minimal() +
-  xlab("Products") +
-  ylab("Price") +
-  theme(panel.grid.major = element_blank(),
-        axis.text.x=element_blank()) + 
-  ggtitle("Price - Product Distribution") +
-  theme(plot.title = element_text(hjust=0.5)) -> p4
+data_monthly <- data_by_invoice %>%
+  mutate(yearmonth = yearmonth(InvoiceDate),
+         # Combine same products with different colors
+         product = str_sub(StockCode, 1, 5)) %>% 
+  filter(Quantity > 0,
+         Price > 0,
+         # Remove those without numbers in product ID
+         !str_detect(product, "^[[:alpha:]]")) %>% 
+  group_by(yearmonth, Country, product) %>%
+  # Calculate amount of sales, average prices, revenue and receipt amount
+  summarise(quantity_sum = sum(Quantity, na.rm = TRUE),
+            price_mean = mean(Price, na.rm = TRUE),
+            revenue = sum(Price * Quantity),
+            n_receipts = n()) %>% 
+  group_by(Country, product) %>% 
+  # Keep only products with two years of observations or more
+  mutate(n_months = n()) %>% 
+  filter(n_months >= 24)
