@@ -47,10 +47,12 @@ p4 <- data_monthly %>%
   facet_wrap(~ Country, scales = "free") +
   xlab("Products") +
   ylab("Price") +
-  theme(panel.grid.major = element_blank(),
-        axis.text.x = element_blank()) +
-  ggtitle("Price - Product Distribution") +
   theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  ggtitle("Price - Product Distribution") +
   theme(plot.title = element_text(hjust = 0.5))
 
 p1 + p2 + p3 + p4
