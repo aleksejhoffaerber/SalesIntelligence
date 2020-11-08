@@ -20,7 +20,7 @@ data_by_invoice <- map(files,
 
 
 data_monthly <- data_by_invoice %>%
-  mutate(yearmonth = yearmonth(InvoiceDate),
+  mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
          # Combine same products with different colors
          product = str_sub(StockCode, 1, 5)) %>% 
   filter(Quantity > 0,
