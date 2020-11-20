@@ -56,3 +56,12 @@ p4 <- data_monthly %>%
   theme(plot.title = element_text(hjust = 0.5))
 
 p1 + p2 + p3 + p4
+
+# Sales of some products
+data_to_arima %>% 
+  filter(product %in% data_to_arima$product[1:I(24 * 12)]) %>% 
+  ggplot(aes(yearmonth, quantity_sum, color = product)) +
+  geom_line() +
+  facet_wrap(~product, scales = "free") +
+  theme_minimal()+
+  theme(legend.position = "none")
