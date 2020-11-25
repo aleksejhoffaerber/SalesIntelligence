@@ -53,7 +53,13 @@ data_to_arima <- data_monthly %>%
   mutate(p_value = sctest(efp)$p) %>% 
   filter(p_value > p_value_threshold) %>%
   select(product) %>% 
-  inner_join(data_monthly)
+  inner_join(data_monthly) %>%
+  as_tsibble(key = "product", index = "yearmonth") %>% 
+  fill_gaps()
+
+# Train ARIMA models
+models <- data_to_arima %>% 
+  model(ARIMA(quantity_sum ~ price_mean))
 
 ui <- dashboardPage(
   title = "Sales dashboard",
@@ -64,7 +70,6 @@ ui <- dashboardPage(
     plotOutput("test_plot")
     )
   )
-  
 )
 
 server <- function(input, output){
