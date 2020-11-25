@@ -32,13 +32,13 @@ data_monthly <- data_by_invoice %>%
          Price > 0,
          # Remove those without numbers in product ID
          !str_detect(product, "^[[:alpha:]]")) %>% 
-  group_by(yearmonth, product, Description) %>% 
+  group_by(yearmonth, product) %>% 
   # Calculate amount of sales, average prices, revenue and receipt amount
   summarise(quantity_sum = sum(Quantity, na.rm = TRUE),
             price_mean = weighted.mean(Price, Quantity, na.rm = TRUE),
             revenue = sum(Price * Quantity),
             n_receipts = n()) %>% 
-  group_by(product, Description) %>% 
+  group_by(product) %>% 
   # Keep only products with two years of observations or more
   mutate(n_months = n()) %>% 
   ungroup() %>% 
