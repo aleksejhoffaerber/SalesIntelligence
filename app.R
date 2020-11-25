@@ -1,5 +1,6 @@
 library(fable)
 library(purrr)
+library(shiny)
 library(scales)
 library(tsibble)
 library(Metrics)
@@ -8,6 +9,7 @@ library(lubridate)
 library(tidyverse)
 library(data.table)
 library(strucchange)
+library(shinydashboard)
 
 p_value_threshold <- 0.05
 
@@ -52,3 +54,29 @@ data_to_arima <- data_monthly %>%
   filter(p_value > p_value_threshold) %>%
   select(product) %>% 
   inner_join(data_monthly)
+
+ui <- dashboardPage(
+  title = "Sales dashboard",
+  dashboardHeader(),
+  dashboardSidebar(),
+  dashboardBody(
+    fluidRow(
+    plotOutput("test_plot")
+    )
+  )
+  
+)
+
+server <- function(input, output){
+  output$test_plot <- renderPlot({
+    data_to_arima %>% 
+    filter(product %in% data_to_arima$product[1:I(24 * 12)]) %>% 
+      ggplot(aes(yearmonth, quantity_sum, color = product)) +
+      geom_line() +
+      facet_wrap(~product, scales = "free") +
+      theme_minimal()+
+      theme(legend.position = "none")
+    })
+}
+
+shinyApp(ui, server)
