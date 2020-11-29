@@ -33,7 +33,7 @@ get_optimal_prices <- function(products){
     reduce(bind_rows)
   
   # Calculate optimal prices by maximizing revenue
-  optimum <- forecasts %>% 
+  forecasts %>% 
     group_by(product) %>% 
     select(product, 
            yearmonth, 
@@ -56,4 +56,15 @@ get_optimal_prices <- function(products){
     arrange(-pred_revenue) %>% 
     slice(1) %>% 
     as_tsibble(key = "product")
+}
+
+plot_quantity_forecasts <- function(optimal_price_tibble, products){
+  optimal_price_tibble %>% 
+    autoplot(pred_quantity, color = "black") +
+    geom_point(aes(group = 1)) +
+    autolayer(data_to_arima %>% 
+                filter(product %in% products)) +
+    facet_wrap(~product, scales = "free") +
+    theme_minimal() +
+    theme(legend.position = "none") # TODO normal price point
 }
