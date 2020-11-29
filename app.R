@@ -1,9 +1,10 @@
 library(fable)
 library(purrr)
+library(furrr)
 library(shiny)
+library(feasts)
 library(scales)
 library(tsibble)
-library(Metrics)
 library(stringr)
 library(lubridate)
 library(tidyverse)
@@ -59,29 +60,34 @@ data_to_arima <- data_monthly %>%
 
 # Train ARIMA models
 models <- data_to_arima %>% 
-  model(ARIMA(quantity_sum ~ price_mean))
+  # Force intercept
+  model(ARIMA(quantity_sum ~ 1 + price_mean))
 
 ui <- dashboardPage(
   title = "Sales dashboard",
   dashboardHeader(),
-  dashboardSidebar(),
+  dashboardSidebar(
+    selectizeInput("products", "Select products",
+                   choices = sort(unique(data_to_arima$product)),
+                   multiple = TRUE),
+    actionButton("run_optimization", "Run price optimization")
+  ),
   dashboardBody(
     fluidRow(
-    plotOutput("test_plot")
+      plotOutput("test_plot")
     )
   )
 )
 
 server <- function(input, output){
-  output$test_plot <- renderPlot({
-    data_to_arima %>% 
-    filter(product %in% data_to_arima$product[1:I(24 * 12)]) %>% 
-      ggplot(aes(yearmonth, quantity_sum, color = product)) +
-      geom_line() +
-      facet_wrap(~product, scales = "free") +
-      theme_minimal()+
-      theme(legend.position = "none")
+  observeEvent({
+    input$run_optimization
+  }, {
+    optimal_price_tibble <- get_optimal_prices(input$products)
+    output$test_plot <- renderPlot({
+      plot_quantity_forecasts(optimal_price_tibble, input$products)
     })
+  })
 }
 
 shinyApp(ui, server)
