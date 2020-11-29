@@ -60,11 +60,22 @@ get_optimal_prices <- function(products){
 
 plot_quantity_forecasts <- function(optimal_price_tibble, products){
   optimal_price_tibble %>% 
-    autoplot(pred_quantity, color = "black") +
-    geom_point(aes(group = 1)) +
+    autoplot(pred_quantity) +
+    geom_point(color = "black") +
+    autolayer(optimal_price_tibble, original_quantity) +
+    geom_point(aes(y = original_quantity)) +
+    geom_segment(aes(xend = yearmonth,
+                     y = original_quantity,
+                     yend = pred_quantity),
+                 color = "black") +
     autolayer(data_to_arima %>% 
                 filter(product %in% products)) +
     facet_wrap(~product, scales = "free") +
+    ggtitle("Effect of price optimization on expected sales quantity") +
+    xlab(NULL) +
+    ylab("Quantity") +
     theme_minimal() +
-    theme(legend.position = "none") # TODO normal price point
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 45,
+                                     hjust = 1))
 }
