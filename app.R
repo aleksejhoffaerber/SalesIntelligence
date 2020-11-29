@@ -80,13 +80,13 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output){
-  observeEvent({
-    input$run_optimization
-  }, {
-    optimal_price_tibble <- get_optimal_prices(input$products)
-    output$test_plot <- renderPlot({
-      plot_quantity_forecasts(optimal_price_tibble, input$products)
-    })
+  update_data <- eventReactive(input$run_optimization, {
+    plot_quantity_forecasts(get_optimal_prices(input$products),
+                            input$products)
+  })
+  
+  output$test_plot <- renderPlot({
+    update_data()
   })
 }
 
