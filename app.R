@@ -12,6 +12,8 @@ library(data.table)
 library(strucchange)
 library(shinydashboard)
 
+source("functions.R")
+
 p_value_threshold <- 0.05
 
 # Data reading and cleaning -----------------------------------------------
@@ -81,8 +83,14 @@ ui <- dashboardPage(
 
 server <- function(input, output){
   update_data <- eventReactive(input$run_optimization, {
-    plot_quantity_forecasts(get_optimal_prices(input$products),
-                            input$products)
+    suppressMessages(
+      # Print to suppress message about groups from ggplot
+      print(
+        plot_quantity_forecasts(
+          get_optimal_prices(input$products),
+          input$products)
+      )
+    )
   })
   
   output$test_plot <- renderPlot({
