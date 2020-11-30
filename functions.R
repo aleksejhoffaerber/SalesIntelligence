@@ -61,21 +61,27 @@ get_optimal_prices <- function(products){
 plot_quantity_forecasts <- function(optimal_price_tibble, products){
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
-    geom_point(color = "black") +
+    geom_point(color = "#DAD4D4") +
     autolayer(optimal_price_tibble, original_quantity) +
-    geom_point(aes(y = original_quantity)) +
+    geom_point(aes(y = original_quantity), color = "#369093") +
     geom_segment(aes(xend = yearmonth,
                      y = original_quantity,
                      yend = pred_quantity),
-                 color = "black") +
+                 color = "#DAD4D4") +
     autolayer(data_to_arima %>% 
-                filter(product %in% products)) +
+                filter(product %in% products), color = "#369093") +
     facet_wrap(~product, scales = "free") +
     ggtitle("Effect of price optimization on expected sales quantity") +
     xlab(NULL) +
     ylab("Quantity") +
     theme_minimal() +
     theme(legend.position = "none",
-          axis.text.x = element_text(angle = 45,
-                                     hjust = 1))
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          text = element_text(colour = "#DAD4D4"),
+          panel.grid = element_line(colour = "#423C3C"),
+          axis.ticks = element_line(colour = "#BCB1B1"),
+          axis.text = element_text(colour = "#BCB1B1"),
+          plot.background = element_rect(fill = "#2D3741", color = "transparent"),
+          panel.border = element_rect(fill = "transparent", colour = "#BCB1B1"),
+          strip.text = element_text(colour = "#DAD4D4"))
 }

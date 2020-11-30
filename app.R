@@ -11,6 +11,7 @@ library(tidyverse)
 library(data.table)
 library(strucchange)
 library(shinydashboard)
+library(dashboardthemes)
 
 source("functions.R")
 
@@ -75,8 +76,12 @@ ui <- dashboardPage(
     actionButton("run_optimization", "Run price optimization")
   ),
   dashboardBody(
+    shinyDashboardThemes(
+      theme = "grey_dark"
+    ),
     fluidRow(
-      plotOutput("test_plot")
+      plotOutput("test_plot"),
+      tags$head(tags$style(HTML('.row {width: 90%;}')))
     )
   )
 )
