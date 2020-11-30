@@ -80,6 +80,12 @@ ui <- dashboardPage(
       theme = "grey_dark"
     ),
     fluidRow(
+      infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
+      infoBox("Revenue increasement", "10%", "Description", icon("percent")),
+      infoBox("Something", 200, "Description", icon("chart-line")),
+      
+    ),
+    fluidRow(
       plotOutput("test_plot"),
       tags$head(tags$style(HTML('.row {width: 90%;}')))
     )
