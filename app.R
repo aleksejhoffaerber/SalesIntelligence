@@ -10,6 +10,7 @@ library(lubridate)
 library(tidyverse)
 library(data.table)
 library(strucchange)
+library(future.apply)
 library(shinydashboard)
 library(dashboardthemes)
 
