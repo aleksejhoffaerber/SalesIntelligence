@@ -1,3 +1,4 @@
+library(rfm)
 library(fable)
 library(purrr)
 library(furrr)
@@ -27,6 +28,18 @@ data_by_invoice <- map(files,
                        ~fread(.x) %>% 
                          as_tibble()) %>% 
   reduce(bind_rows)
+
+# RFM analysis to segment customers
+rfm_result <- data_by_invoice %>% 
+  mutate(date = as.Date(InvoiceDate),
+         revenue = Quantity * Price) %>% 
+  rfm_table_order(`Customer ID`,
+                  date,
+                  revenue,
+                  max(as.Date(.$InvoiceDate)))
+
+# Extract RFM table
+rfm_table <- rfm_result$rfm
 
 # Country Wise
 data_monthly <- data_by_invoice %>%
