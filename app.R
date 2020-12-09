@@ -42,6 +42,71 @@ rfm_result <- data_by_invoice %>%
 # Extract RFM table
 rfm_table <- rfm_result$rfm
 
+# harmonizing the product names
+description_names <- data_by_invoice %>% 
+  mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
+         # Combine same products with different colors
+         product = str_sub(StockCode, 1, 5)) %>% 
+  # Remove those without numbers in product ID
+  filter(!str_detect(product, "^[[:alpha:]]")) %>% 
+  select(Description, product, yearmonth) %>% 
+  arrange(product, yearmonth) %>% 
+  group_by(product) %>% 
+  distinct(Description, product) %>% 
+  # filter out different writing conventions, entry and migration mistakes (e.g. from amazon)
+  filter(!grepl("[a-z]", Description) & 
+           grepl("[[:upper:]]", Description) &
+           !grepl("+mazon", Description) & 
+           !grepl("+djustment", Description))
+
+# unique name combination
+unique_names <- description_names %>% 
+  distinct(product, .keep_all = T)
+
+# product descriptions that appear more than once for one unique product ID
+diff_names <- anti_join(description_names, unique_names)
+
+# apply cleaning by string intersection between multiple product names
+clean_names <- map(as.integer(unique_names$product), ~intersect(
+  strsplit(
+    unique_names %>%
+      as.data.frame() %>% 
+      filter(product == .x) %>%
+      select(Description) %>% 
+      as.character(), split = " ")[[1]],
+  as.character(str_replace_all(strsplit(
+    diff_names %>% 
+      as.data.frame() %>% 
+      filter(product == .x) %>% 
+      select(Description) %>% 
+      as.character(), split = " ")[[1]], "[^[A-Z]]", ""))))
+
+# change empty lists to keep interpretability for rbind
+clean_names[lengths(clean_names) == 0] <- ""
+
+# flatten list and their entries  
+clean_names <- map(1:length(clean_names), 
+                   ~do.call(paste, c(as.list(unlist(clean_names[[.x]], recursive = F)), sep = " ")) %>%  
+                     as.data.frame)
+
+# combine clean names with previous unique product names
+clean_names <- do.call(rbind, lapply(clean_names, function(x) if (length(x) == 0) "" else x)) %>% 
+  as.data.frame %>% 
+  cbind(unique_names)
+
+# conditional variable to prefer new, clean product name
+clean_names <- clean_names %>% 
+  cbind(sapply(1:nrow(clean_names), 
+               function(x) if 
+               (clean_names[x,1] == "") 
+                 clean_names[x,2] else 
+                   clean_names[x,1])) %>% 
+  select(-., -Description) %>% 
+  as.tibble()
+
+colnames(clean_names) <- c("product", "product_name")
+
+
 # Country Wise
 data_monthly <- data_by_invoice %>%
   mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
