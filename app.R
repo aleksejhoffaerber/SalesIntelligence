@@ -29,11 +29,12 @@ data_by_invoice <- map(files,
                          as_tibble()) %>% 
   reduce(bind_rows)
 
-# RFM analysis to segment customers
+# RFM analysis to segment customers 
+# we also need to add a view for the products
 rfm_result <- data_by_invoice %>% 
   mutate(date = as.Date(InvoiceDate),
          revenue = Quantity * Price) %>% 
-  rfm_table_order(`Customer ID`,
+  rfm_table_order(StockCode,
                   date,
                   revenue,
                   max(as.Date(.$InvoiceDate)))
