@@ -29,8 +29,7 @@ data_by_invoice <- map(files,
                          as_tibble()) %>% 
   reduce(bind_rows)
 
-# RFM analysis to segment customers 
-# TODO add a view for the products
+# RFM analysis to segment customers
 rfm_result <- data_by_invoice %>% 
   mutate(date = as.Date(InvoiceDate),
          revenue = Quantity * Price) %>% 
@@ -41,6 +40,9 @@ rfm_result <- data_by_invoice %>%
 
 # Extract RFM table
 rfm_table <- rfm_result$rfm
+
+# Make RFM heat map
+rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE)
 
 data_unified_names <- data_by_invoice %>% 
   mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
@@ -148,6 +150,7 @@ ui <- dashboardPage(
       
     ),
     fluidRow(
+      plotOutput("rfm_plot"),
       plotOutput("test_plot"),
       tags$head(tags$style(HTML('.row {width: 90%;}')))
     )
@@ -166,6 +169,9 @@ server <- function(input, output){
     )
   })
   
+  output$rfm_plot <- renderPlot({
+    rfm_plot
+  })
   output$test_plot <- renderPlot({
     update_data()
   })
