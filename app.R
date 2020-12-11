@@ -33,8 +33,13 @@ data_by_invoice <- map(files,
                          as_tibble()) %>% 
   reduce(bind_rows)
 
+data_unified_names <- data_by_invoice %>% 
+  mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
+         # Combine same products with different colors
+         product = str_sub(StockCode, 1, 5))
+
 # RFM analysis to segment customers
-rfm_result <- data_by_invoice %>% 
+rfm_result <- data_unified_names %>% 
   mutate(date = as.Date(InvoiceDate),
          revenue = Quantity * Price) %>% 
   rfm_table_order(StockCode,
@@ -61,11 +66,6 @@ rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
         legend.title = element_text(size = plot_font_size),
         plot.title = element_text(size = plot_font_size),
         axis.title = element_text(size = plot_font_size))
-
-data_unified_names <- data_by_invoice %>% 
-  mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
-         # Combine same products with different colors
-         product = str_sub(StockCode, 1, 5))
 
 # Harmonizing the product names
 description_names <- data_unified_names %>% 
