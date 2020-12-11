@@ -38,11 +38,11 @@ data_unified_names <- data_by_invoice %>%
          # Combine same products with different colors
          product = str_sub(StockCode, 1, 5))
 
-# RFM analysis to segment customers
+# RFM analysis to segment products
 rfm_result <- data_unified_names %>% 
   mutate(date = as.Date(InvoiceDate),
          revenue = Quantity * Price) %>% 
-  rfm_table_order(StockCode,
+  rfm_table_order(product,
                   date,
                   revenue,
                   max(as.Date(.$InvoiceDate)))
@@ -51,7 +51,7 @@ rfm_result <- data_unified_names %>%
 rfm_table <- rfm_result$rfm
 
 # Include product segments
-segment_names <- c("Champions", "Good Products", "Avrg. Products",
+segment_names <- c("Champions", "Good", "Average",
                    "New", "Promising", "Need Attention", "About To Sleep",
                    "At Risk", "Can't Lose Them", "Lost")
 
@@ -105,10 +105,10 @@ rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
 description_names <- data_unified_names %>% 
   # Remove those without numbers in product ID
   filter(!str_detect(product, "^[[:alpha:]]")) %>% 
-  select(Description, product, yearmonth) %>% 
+  select(Description, product, yearmonth, segment) %>% 
   arrange(product, yearmonth) %>% 
   group_by(product) %>% 
-  distinct(Description, product) %>% 
+  distinct(Description, product) %>%
   # Remove different writing conventions, entry and migration mistakes
   filter(!str_detect(Description, "[:lower:]") & 
            str_detect(Description, "[:upper:]") &
@@ -163,7 +163,10 @@ data_monthly <- data_unified_names %>%
   mutate(n_months = n()) %>% 
   ungroup() %>% 
   filter(n_months >= 24) %>% 
-  arrange(product, yearmonth)
+  arrange(product, yearmonth) %>%
+  left_join(segments %>% 
+              select(customer_id, segment),
+            by = c("product" = "customer_id"))
 
 # Remove products with significant breaks in the data
 data_to_arima <- data_monthly %>% 
@@ -192,6 +195,9 @@ ui <- dashboardPage(
   title = "Sales dashboard",
   dashboardHeader(),
   dashboardSidebar(
+    selectizeInput("segments", "Select product segment",
+                   choices = unique(data_to_arima$segment),
+                   multiple = TRUE),
     selectizeInput("products", "Select products",
                    choices = sort(unique(data_to_arima$product)),
                    multiple = TRUE),
@@ -252,6 +258,15 @@ server <- function(input, output, session){
       )
     )
     })
+  
+  observeEvent(input$segments, 
+               updateSelectizeInput(session,
+                                    "products",
+                                    choices = data_to_arima %>% 
+                                      filter(segment %in% input$segments) %>% 
+                                      pull(product) %>% 
+                                      unique())
+  )
   
   observeEvent(input$run_optimization, {
     output$info_boxes <- renderUI({
