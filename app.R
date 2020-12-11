@@ -182,6 +182,7 @@ ui <- dashboardPage(
       tabItem(tabName = "results",
               fluidRow(
                 column(12,
+                       uiOutput("info_boxes"),
                        plotOutput("test_plot"),
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}'))))
