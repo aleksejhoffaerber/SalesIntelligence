@@ -5,6 +5,7 @@ library(furrr)
 library(shiny)
 library(feasts)
 library(scales)
+library(future)
 library(tsibble)
 library(stringr)
 library(lubridate)
@@ -141,9 +142,14 @@ data_to_arima <- data_monthly %>%
   as_tsibble(key = "product", index = "yearmonth") %>% 
   fill_gaps()
 
+# Parallelize
+plan(multisession)
+
 # Train ARIMA models
+tic <- Sys.time()
 models <- data_to_arima %>% 
   model(ARIMA(quantity_sum ~ price_mean))
+(toc <- Sys.time() - tic)
 
 # Shiny components --------------------------------------------------------
 
