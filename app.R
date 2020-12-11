@@ -19,6 +19,8 @@ source("functions.R")
 
 p_value_threshold <- 0.05
 
+plot_font_size <- 20
+
 # Data reading, cleaning and modeling -------------------------------------
 
 # Get paths of all input files and load them
@@ -42,7 +44,21 @@ rfm_result <- data_by_invoice %>%
 rfm_table <- rfm_result$rfm
 
 # Make RFM heat map
-rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE)
+rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
+  ggtitle("Product level RFM") +
+  theme(text = element_text(colour = "#DAD4D4"),
+        panel.grid = element_line(colour = "#2D3741"),
+        panel.background = element_rect(fill = "#2D3741"),
+        axis.text = element_text(colour = "#BCB1B1", size = plot_font_size),
+        plot.background = element_rect(fill = "#2D3741", color = "transparent"),
+        legend.position = "bottom",
+        legend.key.width = unit(2, "cm"),
+        legend.box.margin = margin(t = 13),
+        legend.background = element_rect(fill = "#2D3741"),
+        legend.text = element_text(size = plot_font_size),
+        legend.title = element_text(size = plot_font_size),
+        plot.title = element_text(size = plot_font_size),
+        axis.title = element_text(size = plot_font_size))
 
 data_unified_names <- data_by_invoice %>% 
   mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
@@ -151,8 +167,10 @@ ui <- dashboardPage(
       
     ),
     fluidRow(
-      plotOutput("rfm_plot"),
-      plotOutput("test_plot"),
+      column(12,
+             plotOutput("rfm_plot"),
+             plotOutput("test_plot"),
+             align = "center"),
       tags$head(tags$style(HTML('.row {width: 90%;}')))
     )
   )
@@ -172,7 +190,7 @@ server <- function(input, output){
   
   output$rfm_plot <- renderPlot({
     rfm_plot
-  })
+  }, height = 600, width = 750)
   output$test_plot <- renderPlot({
     update_data()
   })
