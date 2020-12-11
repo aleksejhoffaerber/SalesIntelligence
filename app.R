@@ -19,7 +19,7 @@ source("functions.R")
 
 p_value_threshold <- 0.05
 
-# Data reading and cleaning -----------------------------------------------
+# Data reading, cleaning and modeling -------------------------------------
 
 # Get paths of all input files and load them
 files <- paste0("Data/", list.files("Data/", pattern = "*.csv"))
@@ -127,8 +127,9 @@ data_to_arima <- data_monthly %>%
 
 # Train ARIMA models
 models <- data_to_arima %>% 
-  # Force intercept
-  model(ARIMA(quantity_sum ~ 1 + price_mean))
+  model(ARIMA(quantity_sum ~ price_mean))
+
+# Shiny components --------------------------------------------------------
 
 ui <- dashboardPage(
   title = "Sales dashboard",
