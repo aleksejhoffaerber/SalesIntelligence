@@ -154,29 +154,44 @@ ui <- dashboardPage(
     selectizeInput("products", "Select products",
                    choices = sort(unique(data_to_arima$product)),
                    multiple = TRUE),
-    actionButton("run_optimization", "Run price optimization")
+    actionButton("run_optimization", "Run price optimization"),
+    hr(),
+    sidebarMenu(id = "menu",
+                sidebarMenuOutput("sidebar")
+    )
   ),
   dashboardBody(
     shinyDashboardThemes(
       theme = "grey_dark"
     ),
-    fluidRow(
-      infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
-      infoBox("Revenue increasement", "10%", "Description", icon("percent")),
-      infoBox("Something", 200, "Description", icon("chart-line")),
-      
-    ),
-    fluidRow(
-      column(12,
-             plotOutput("rfm_plot"),
-             plotOutput("test_plot"),
-             align = "center"),
-      tags$head(tags$style(HTML('.row {width: 90%;}')))
+    
+    tabItems(
+      tabItem(tabName = "rfm",
+              fluidRow(
+                column(12,
+                       plotOutput("rfm_plot"),
+                       align = "center"),
+                tags$head(tags$style(HTML('.row {width: 90%;}'))))
+      ),
+      tabItem(tabName = "results",
+              fluidRow(
+                column(12,
+                       plotOutput("test_plot"),
+                       align = "center"),
+                tags$head(tags$style(HTML('.row {width: 90%;}'))))
+      )
     )
   )
 )
 
-server <- function(input, output){
+server <- function(input, output, session){
+  # Menu before optimizing
+  output$sidebar <- renderMenu({
+    sidebarMenu(id = "menu",
+                menuItem("RFM", tabName = "rfm")
+    )
+  })
+  
   update_data <- eventReactive(input$run_optimization, {
     suppressMessages(
       # Print to suppress message about groups from ggplot
@@ -186,6 +201,25 @@ server <- function(input, output){
           input$products)
       )
     )
+    })
+  
+  observeEvent(input$run_optimization, {
+    output$info_boxes <- renderUI({
+    fluidRow(
+      infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
+      infoBox("Revenue increasement", "10%", "Description", icon("percent")),
+      infoBox("Something", 200, "Description", icon("chart-line"))
+    )
+    })
+    
+    output$sidebar <- renderMenu({
+      sidebarMenu(id = "menu",
+                  menuItem("RFM", tabName = "rfm"),
+                  menuItem("Results", tabName = "results")
+                  )
+    })
+    
+    updateTabItems(session, "menu", "results")
   })
   
   output$rfm_plot <- renderPlot({
