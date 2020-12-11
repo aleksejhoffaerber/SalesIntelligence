@@ -68,12 +68,6 @@ segments <- rfm_segment(rfm_result, segment_names, recency_lower,
                         recency_upper, frequency_lower, frequency_upper, monetary_lower,
                         monetary_upper) 
 
-# Include segments into main df
-data_unified_names <- data_unified_names %>% 
-  left_join(segments %>% 
-              select(customer_id, segment),
-            by = c("product" = "customer_id"))
-
 # Segment plot and monetary contribution
 rfm_monetary_segments <- 
   
@@ -205,11 +199,11 @@ ui <- dashboardPage(
   title = "Sales dashboard",
   dashboardHeader(),
   dashboardSidebar(
-    selectizeInput("products", "Select products",
-                   choices = sort(unique(data_to_arima$product)),
-                   multiple = TRUE),
     selectizeInput("segments", "Select product segment",
                    choices = unique(data_to_arima$segment),
+                   multiple = TRUE),
+    selectizeInput("products", "Select products",
+                   choices = sort(unique(data_to_arima$product)),
                    multiple = TRUE),
     actionButton("run_optimization", "Run price optimization"),
     hr(),
@@ -268,6 +262,15 @@ server <- function(input, output, session){
       )
     )
     })
+  
+  observeEvent(input$segments, 
+               updateSelectizeInput(session,
+                                    "products",
+                                    choices = data_to_arima %>% 
+                                      filter(segment %in% input$segments) %>% 
+                                      pull(product) %>% 
+                                      unique())
+  )
   
   observeEvent(input$run_optimization, {
     output$info_boxes <- renderUI({
