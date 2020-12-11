@@ -141,7 +141,7 @@ plot_quantity_forecasts <- function(optimal_price_tibble, product){
     facet_wrap(~product, scales = "free") +
     ggtitle("Effect of price optimization on expected sales quantity") +
     xlab(NULL) +
-    ylab("Quantity") +
+    ylab("Revenue") +
     theme_minimal() +
     theme(legend.position = "none",
           axis.text.x = element_text(angle = 45, hjust = 1),

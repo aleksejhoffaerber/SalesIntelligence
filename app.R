@@ -69,7 +69,8 @@ segments <- rfm_segment(rfm_result, segment_names,
                         monetary_lower, monetary_upper)
 
 # Segment plot and monetary contribution
-rfm_monetary_segments <- rfm_plot_median_monetary(segments) +
+rfm_monetary_segments <- rfm_plot_median_monetary(segments,
+                                                  print_plot = FALSE) +
   theme(text = element_text(colour = "#DAD4D4"),
         panel.grid = element_line(colour = "#2D3741"),
         panel.background = element_rect(fill = "#2D3741"),
@@ -195,12 +196,12 @@ ui <- dashboardPage(
   title = "Sales dashboard",
   dashboardHeader(),
   dashboardSidebar(
-    selectizeInput("segments", "Select product segment",
+    selectizeInput("segments", "Filter products by segment",
                    choices = unique(data_to_arima$segment),
                    multiple = TRUE),
-    selectizeInput("products", "Select products",
+    selectizeInput("product", "Select product",
                    choices = sort(unique(data_to_arima$product)),
-                   multiple = TRUE),
+                   multiple = FALSE),
     actionButton("run_optimization", "Run price optimization"),
     hr(),
     sidebarMenu(id = "menu",
@@ -252,16 +253,16 @@ server <- function(input, output, session){
     suppressMessages(
       # Print to suppress message about groups from ggplot
       print(
-        get_forecasts(input$products) %>% 
+        get_forecasts(input$product) %>% 
           get_optimal_forecast() %>% 
-          plot_revenue_forecasts(input$products)
+          plot_revenue_forecasts(input$product)
       )
     )
     })
   
   observeEvent(input$segments, 
                updateSelectizeInput(session,
-                                    "products",
+                                    "product",
                                     choices = data_to_arima %>% 
                                       filter(segment %in% input$segments) %>% 
                                       pull(product) %>% 
