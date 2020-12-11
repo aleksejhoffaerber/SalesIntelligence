@@ -38,6 +38,72 @@ data_unified_names <- data_by_invoice %>%
          # Combine same products with different colors
          product = str_sub(StockCode, 1, 5))
 
+<<<<<<< HEAD
+=======
+# RFM analysis to segment products
+rfm_result <- data_unified_names %>% 
+  mutate(date = as.Date(InvoiceDate),
+         revenue = Quantity * Price) %>% 
+  rfm_table_order(product,
+                  date,
+                  revenue,
+                  max(as.Date(.$InvoiceDate)))
+
+# Extract RFM table
+rfm_table <- rfm_result$rfm
+
+# Include product segments
+segment_names <- c("Champions", "Good", "Average",
+                   "New", "Promising", "Need Attention", "About To Sleep",
+                   "At Risk", "Can't Lose Them", "Lost")
+
+# Segment rules
+recency_lower <- c(4, 2, 3, 4, 3, 2, 2, 1, 1, 1)
+recency_upper <- c(5, 5, 5, 5, 4, 3, 3, 2, 1, 2)
+frequency_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
+frequency_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
+monetary_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
+monetary_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
+
+segments <- rfm_segment(rfm_result, segment_names,
+                        recency_lower, recency_upper,
+                        frequency_lower, frequency_upper,
+                        monetary_lower, monetary_upper)
+
+# Segment plot and monetary contribution
+rfm_monetary_segments <- rfm_plot_median_monetary(segments) +
+  theme(text = element_text(colour = "#DAD4D4"),
+        panel.grid = element_line(colour = "#2D3741"),
+        panel.background = element_rect(fill = "#2D3741"),
+        axis.text = element_text(colour = "#BCB1B1", size = plot_font_size),
+        plot.background = element_rect(fill = "#2D3741", color = "transparent"),
+        legend.position = "bottom",
+        legend.key.width = unit(2, "cm"),
+        legend.box.margin = margin(t = 13),
+        legend.background = element_rect(fill = "#2D3741"),
+        legend.text = element_text(size = plot_font_size),
+        legend.title = element_text(size = plot_font_size),
+        plot.title = element_text(size = plot_font_size),
+        axis.title = element_text(size = plot_font_size))
+
+# Make RFM heat map
+rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
+  ggtitle("Product level RFM") +
+  theme(text = element_text(colour = "#DAD4D4"),
+        panel.grid = element_line(colour = "#2D3741"),
+        panel.background = element_rect(fill = "#2D3741"),
+        axis.text = element_text(colour = "#BCB1B1", size = plot_font_size),
+        plot.background = element_rect(fill = "#2D3741", color = "transparent"),
+        legend.position = "bottom",
+        legend.key.width = unit(2, "cm"),
+        legend.box.margin = margin(t = 13),
+        legend.background = element_rect(fill = "#2D3741"),
+        legend.text = element_text(size = plot_font_size),
+        legend.title = element_text(size = plot_font_size),
+        plot.title = element_text(size = plot_font_size),
+        axis.title = element_text(size = plot_font_size))
+
+>>>>>>> 5cb47dd4caa260bb8e8d90c03b1913e7cc4cd10a
 # Harmonizing the product names
 description_names <- data_unified_names %>% 
   # Remove those without numbers in product ID
@@ -272,9 +338,9 @@ server <- function(input, output, session){
     suppressMessages(
       # Print to suppress message about groups from ggplot
       print(
-        plot_quantity_forecasts(
-          get_optimal_prices(input$products),
-          input$products)
+        get_forecasts(input$products) %>% 
+          get_optimal_forecast() %>% 
+          plot_revenue_forecasts(input$products)
       )
     )
     })
@@ -304,7 +370,11 @@ server <- function(input, output, session){
                   menuItem("Results", tabName = "results")
                   )
     })
+<<<<<<< HEAD
     
+=======
+    # Switch tab to results after optimizing
+>>>>>>> 5cb47dd4caa260bb8e8d90c03b1913e7cc4cd10a
     updateTabItems(session, "menu", "results")
   })
   
