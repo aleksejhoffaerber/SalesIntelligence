@@ -204,9 +204,9 @@ server <- function(input, output, session){
     suppressMessages(
       # Print to suppress message about groups from ggplot
       print(
-        plot_quantity_forecasts(
-          get_optimal_prices(input$products),
-          input$products)
+        get_forecasts(input$products) %>% 
+          get_optimal_forecast() %>% 
+          plot_revenue_forecasts(input$products)
       )
     )
     })
