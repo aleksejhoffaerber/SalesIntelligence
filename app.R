@@ -38,11 +38,11 @@ data_unified_names <- data_by_invoice %>%
          # Combine same products with different colors
          product = str_sub(StockCode, 1, 5))
 
-# RFM analysis to segment customers
+# RFM analysis to segment products
 rfm_result <- data_unified_names %>% 
   mutate(date = as.Date(InvoiceDate),
          revenue = Quantity * Price) %>% 
-  rfm_table_order(StockCode,
+  rfm_table_order(product,
                   date,
                   revenue,
                   max(as.Date(.$InvoiceDate)))
@@ -52,7 +52,7 @@ rfm_table <- rfm_result$rfm
 # rfm_bar <- rfm_bar_chart(rfm_result)
 
 # Include Product Segments
-segment_names <- c("Champions", "Good Products", "Avrg. Products",
+segment_names <- c("Champions", "Good", "Average",
                    "New", "Promising", "Need Attention", "About To Sleep",
                    "At Risk", "Can't Lose Them", "Lost")
 
@@ -66,7 +66,13 @@ monetary_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
 
 segments <- rfm_segment(rfm_result, segment_names, recency_lower,
                         recency_upper, frequency_lower, frequency_upper, monetary_lower,
-                        monetary_upper)
+                        monetary_upper) 
+
+# Include segments into main df
+data_unified_names <- data_unified_names %>% 
+  left_join(segments %>% 
+              select(customer_id, segment),
+            by = c("product" = "customer_id"))
 
 # Segment plot and monetary contribution
 rfm_monetary_segments <- 
@@ -109,10 +115,10 @@ rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
 description_names <- data_unified_names %>% 
   # Remove those without numbers in product ID
   filter(!str_detect(product, "^[[:alpha:]]")) %>% 
-  select(Description, product, yearmonth) %>% 
+  select(Description, product, yearmonth, segment) %>% 
   arrange(product, yearmonth) %>% 
   group_by(product) %>% 
-  distinct(Description, product) %>% 
+  distinct(Description, product) %>%
   # Remove different writing conventions, entry and migration mistakes
   filter(!str_detect(Description, "[:lower:]") & 
            str_detect(Description, "[:upper:]") &
@@ -167,7 +173,10 @@ data_monthly <- data_unified_names %>%
   mutate(n_months = n()) %>% 
   ungroup() %>% 
   filter(n_months >= 24) %>% 
-  arrange(product, yearmonth)
+  arrange(product, yearmonth) %>%
+  left_join(segments %>% 
+              select(customer_id, segment),
+            by = c("product" = "customer_id"))
 
 # Remove products with significant breaks in the data
 data_to_arima <- data_monthly %>% 
@@ -198,6 +207,9 @@ ui <- dashboardPage(
   dashboardSidebar(
     selectizeInput("products", "Select products",
                    choices = sort(unique(data_to_arima$product)),
+                   multiple = TRUE),
+    selectizeInput("segments", "Select product segment",
+                   choices = unique(data_to_arima$segment),
                    multiple = TRUE),
     actionButton("run_optimization", "Run price optimization"),
     hr(),
