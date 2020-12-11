@@ -14,6 +14,7 @@ library(data.table)
 library(strucchange)
 library(future.apply)
 library(shinydashboard)
+library(shinycssloaders)
 library(dashboardthemes)
 
 source("functions.R")
@@ -183,7 +184,7 @@ ui <- dashboardPage(
               fluidRow(
                 column(12,
                        uiOutput("info_boxes"),
-                       plotOutput("test_plot"),
+                       withSpinner(plotOutput("test_plot"), type = 7),
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}'))))
       )
