@@ -49,14 +49,13 @@ rfm_result <- data_unified_names %>%
 
 # Extract RFM table
 rfm_table <- rfm_result$rfm
-# rfm_bar <- rfm_bar_chart(rfm_result)
 
-# Include Product Segments
+# Include product segments
 segment_names <- c("Champions", "Good Products", "Avrg. Products",
                    "New", "Promising", "Need Attention", "About To Sleep",
                    "At Risk", "Can't Lose Them", "Lost")
 
-# Segment Rules
+# Segment rules
 recency_lower <- c(4, 2, 3, 4, 3, 2, 2, 1, 1, 1)
 recency_upper <- c(5, 5, 5, 5, 4, 3, 3, 2, 1, 2)
 frequency_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
@@ -64,14 +63,13 @@ frequency_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
 monetary_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
 monetary_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
 
-segments <- rfm_segment(rfm_result, segment_names, recency_lower,
-                        recency_upper, frequency_lower, frequency_upper, monetary_lower,
-                        monetary_upper)
+segments <- rfm_segment(rfm_result, segment_names,
+                        recency_lower, recency_upper,
+                        frequency_lower, frequency_upper,
+                        monetary_lower, monetary_upper)
 
 # Segment plot and monetary contribution
-rfm_monetary_segments <- 
-  
-  rfm_plot_median_monetary(segments) +
+rfm_monetary_segments <- rfm_plot_median_monetary(segments) +
   theme(text = element_text(colour = "#DAD4D4"),
         panel.grid = element_line(colour = "#2D3741"),
         panel.background = element_rect(fill = "#2D3741"),
@@ -85,8 +83,6 @@ rfm_monetary_segments <-
         legend.title = element_text(size = plot_font_size),
         plot.title = element_text(size = plot_font_size),
         axis.title = element_text(size = plot_font_size))
-
-
 
 # Make RFM heat map
 rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
@@ -273,8 +269,8 @@ server <- function(input, output, session){
                   menuItem("Results", tabName = "results")
                   )
     })
-    
-    updateTabItems(session, "menu", "segments", "results")
+    # Switch tab to results after optimizing
+    updateTabItems(session, "menu", "results")
   })
   
   output$rfm_plot <- renderPlot({
