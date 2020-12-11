@@ -49,6 +49,44 @@ rfm_result <- data_unified_names %>%
 
 # Extract RFM table
 rfm_table <- rfm_result$rfm
+# rfm_bar <- rfm_bar_chart(rfm_result)
+
+# Include Product Segments
+segment_names <- c("Champions", "Good Products", "Avrg. Products",
+                   "New", "Promising", "Need Attention", "About To Sleep",
+                   "At Risk", "Can't Lose Them", "Lost")
+
+# Segment Rules
+recency_lower <- c(4, 2, 3, 4, 3, 2, 2, 1, 1, 1)
+recency_upper <- c(5, 5, 5, 5, 4, 3, 3, 2, 1, 2)
+frequency_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
+frequency_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
+monetary_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
+monetary_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
+
+segments <- rfm_segment(rfm_result, segment_names, recency_lower,
+                        recency_upper, frequency_lower, frequency_upper, monetary_lower,
+                        monetary_upper)
+
+# Segment plot and monetary contribution
+rfm_monetary_segments <- 
+  
+  rfm_plot_median_monetary(segments) +
+  theme(text = element_text(colour = "#DAD4D4"),
+        panel.grid = element_line(colour = "#2D3741"),
+        panel.background = element_rect(fill = "#2D3741"),
+        axis.text = element_text(colour = "#BCB1B1", size = plot_font_size),
+        plot.background = element_rect(fill = "#2D3741", color = "transparent"),
+        legend.position = "bottom",
+        legend.key.width = unit(2, "cm"),
+        legend.box.margin = margin(t = 13),
+        legend.background = element_rect(fill = "#2D3741"),
+        legend.text = element_text(size = plot_font_size),
+        legend.title = element_text(size = plot_font_size),
+        plot.title = element_text(size = plot_font_size),
+        axis.title = element_text(size = plot_font_size))
+
+
 
 # Make RFM heat map
 rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
@@ -180,6 +218,13 @@ ui <- dashboardPage(
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}'))))
       ),
+      tabItem(tabName = "segments",
+              fluidRow(
+                column(12,
+                       plotOutput("rfm_monetary_segments"),
+                       align = "center"),
+                tags$head(tags$style(HTML('.row {width: 90%;}'))))
+      ),
       tabItem(tabName = "results",
               fluidRow(
                 column(12,
@@ -196,7 +241,8 @@ server <- function(input, output, session){
   # Menu before optimizing
   output$sidebar <- renderMenu({
     sidebarMenu(id = "menu",
-                menuItem("RFM", tabName = "rfm")
+                menuItem("RFM", tabName = "rfm"),
+                menuItem("Segments", tabName = "segments")
     )
   })
   
@@ -223,15 +269,19 @@ server <- function(input, output, session){
     output$sidebar <- renderMenu({
       sidebarMenu(id = "menu",
                   menuItem("RFM", tabName = "rfm"),
+                  menuItem("Segments", tabName = "segments"),
                   menuItem("Results", tabName = "results")
                   )
     })
     
-    updateTabItems(session, "menu", "results")
+    updateTabItems(session, "menu", "segments", "results")
   })
   
   output$rfm_plot <- renderPlot({
     rfm_plot
+  }, height = 600, width = 750)
+  output$rfm_monetary_segments <- renderPlot({
+    rfm_monetary_segments
   }, height = 600, width = 750)
   output$test_plot <- renderPlot({
     update_data()
