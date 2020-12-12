@@ -246,6 +246,9 @@ rfm_monetary_segments <- segments %>%
 
 # Make RFM heat map
 rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
+  geom_rect(aes(xmin = 0.5, xmax = 5.5, ymin = 0.5, ymax = 5.5),
+            fill = "#F1EEF6") +
+  geom_tile(aes(frequency_score, recency_score, fill = monetary)) +
   ggtitle("Product level RFM") +
   theme(text = element_text(colour = "#DAD4D4"),
         panel.grid = element_line(colour = "#2D3741"),
