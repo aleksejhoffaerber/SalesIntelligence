@@ -1,5 +1,6 @@
 # Make forecasts for different prices
-get_forecasts <- function(chosen_product){
+get_forecasts <- function(chosen_product, data_to_arima, models){
+  
   new_data <- data_to_arima %>% 
     filter(product %in% chosen_product) %>% 
     # Get the last observation
@@ -81,7 +82,10 @@ get_optimal_forecast <- function(forecasts){
     as_tsibble(key = "product")
 }
 
-plot_revenue_forecasts <- function(optimal_forecast, chosen_product){
+plot_revenue_forecasts <- function(optimal_forecast,
+                                   chosen_product,
+                                   data_to_arima,
+                                   plot_font_size){
   optimal_forecast %>% 
     autoplot(pred_revenue) +
     geom_point(color = "#DAD4D4") +
@@ -98,7 +102,7 @@ plot_revenue_forecasts <- function(optimal_forecast, chosen_product){
     ggtitle("Effect of price optimization on expected revenue",
             subtitle = "TODO product name") + # TODO
     xlab(NULL) +
-    ylab("Quantity") +
+    ylab("Revenue") +
     theme_minimal() +
     theme(text = element_text(colour = "#DAD4D4"),
           panel.grid = element_line(colour = "#423C3C"),
@@ -126,7 +130,10 @@ plot_revenue_forecasts <- function(optimal_forecast, chosen_product){
 }
 
 # FIXME
-plot_quantity_forecasts <- function(optimal_price_tibble, product){
+plot_quantity_forecasts <- function(optimal_price_tibble,
+                                    product,
+                                    data_to_arima,
+                                    plot_font_size){
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
     geom_point(color = "#DAD4D4") +
@@ -152,4 +159,20 @@ plot_quantity_forecasts <- function(optimal_price_tibble, product){
           plot.background = element_rect(fill = "#2D3741", color = "transparent"),
           panel.border = element_rect(fill = "transparent", colour = "#BCB1B1"),
           strip.text = element_text(colour = "#DAD4D4"))
+}
+
+# Segment rules for RFM
+create_segments <- function(rfm_result) {
+  # segment boundaries
+  recency_lower <- c(4, 2, 3, 4, 3, 2, 2, 1, 1, 1)
+  recency_upper <- c(5, 5, 5, 5, 4, 3, 3, 2, 1, 2)
+  frequency_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
+  frequency_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
+  monetary_lower <- c(4, 3, 1, 1, 1, 2, 1, 2, 4, 1)
+  monetary_upper <- c(5, 5, 3, 1, 1, 3, 2, 5, 5, 2)
+  
+  rfm_segment(rfm_result, segment_names,
+              recency_lower, recency_upper,
+              frequency_lower, frequency_upper,
+              monetary_lower, monetary_upper) 
 }
