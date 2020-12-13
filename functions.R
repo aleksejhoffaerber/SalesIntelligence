@@ -1,6 +1,12 @@
 # Make forecasts for different prices
 get_forecasts <- function(chosen_product, data_to_arima, models){
   
+  # translate product_name to product_id
+  chosen_product <- data_to_arima %>% 
+    filter(product_name %in% chosen_product) %>% 
+    pull(product) %>% 
+    head(1)
+  
   new_data <- data_to_arima %>% 
     filter(product %in% chosen_product) %>% 
     # Get the last observation
@@ -86,6 +92,13 @@ plot_revenue_forecasts <- function(optimal_forecast,
                                    chosen_product,
                                    data_to_arima,
                                    plot_font_size){
+  
+  # translate product_name to product_id
+  chosen_product <- data_to_arima %>% 
+    filter(product_name %in% chosen_product) %>% 
+    pull(product) %>% 
+    head(1)
+  
   optimal_forecast %>% 
     autoplot(pred_revenue) +
     geom_point(color = "#DAD4D4") +
@@ -131,9 +144,16 @@ plot_revenue_forecasts <- function(optimal_forecast,
 
 # FIXME
 plot_quantity_forecasts <- function(optimal_price_tibble,
-                                    product,
+                                    prod,
                                     data_to_arima,
                                     plot_font_size){
+  
+  # translate product_name to product_id
+  prod <- data_to_arima %>% 
+    filter(product_name %in% prod) %>% 
+    pull(product) %>% 
+    head(1)
+  
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
     geom_point(color = "#DAD4D4") +

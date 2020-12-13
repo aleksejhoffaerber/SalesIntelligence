@@ -83,7 +83,7 @@ ui <- dashboardPage(
                    choices = unique(data_to_arima$segment),
                    multiple = TRUE),
     selectizeInput("product", "Select product",
-                   choices = sort(unique(data_to_arima$product)),
+                   choices = sort(unique(data_to_arima$product_name)),
                    multiple = FALSE),
     actionButton("run_optimization", "Run price optimization"),
     hr(),
@@ -136,9 +136,9 @@ server <- function(input, output, session){
     suppressMessages(
       # Print to suppress message about groups from ggplot
       print(
-        get_forecasts(input$product, data_to_arima, models) %>% 
+        get_forecasts(input$product_name, data_to_arima, models) %>% 
           get_optimal_forecast() %>% 
-          plot_revenue_forecasts(input$product, data_to_arima, plot_font_size)
+          plot_revenue_forecasts(input$product_name, data_to_arima, plot_font_size)
       )
     )
     })
@@ -148,7 +148,7 @@ server <- function(input, output, session){
                                     "product",
                                     choices = data_to_arima %>% 
                                       filter(segment %in% input$segments) %>% 
-                                      pull(product) %>% 
+                                      pull(product_name) %>% 
                                       unique())
   )
   
