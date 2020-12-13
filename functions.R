@@ -1,11 +1,16 @@
-# Make forecasts for different prices
-get_forecasts <- function(chosen_product, data_to_arima, models){
-  
-  # translate product_name to product_id
-  chosen_product <- data_to_arima %>% 
-    filter(product_name %in% chosen_product) %>% 
+# Translate product_name to product id
+translate_input <- function(input) {
+  data_to_arima %>% 
+    filter(product_name %in% input) %>% 
     pull(product) %>% 
     head(1)
+}
+
+# Make forecasts for different prices
+get_forecasts <- function(chosen_product, data_to_arima, models){
+
+  # Translate product_name to product id
+  chosen_product <- translate_input(chosen_product)
   
   new_data <- data_to_arima %>% 
     filter(product %in% chosen_product) %>% 
@@ -94,10 +99,8 @@ plot_revenue_forecasts <- function(optimal_forecast,
                                    plot_font_size){
   
   # translate product_name to product_id
-  chosen_product <- data_to_arima %>% 
-    filter(product_name %in% chosen_product) %>% 
-    pull(product) %>% 
-    head(1)
+  dd <- chosen_product
+  chosen_product <- translate_input(chosen_product)
   
   optimal_forecast %>% 
     autoplot(pred_revenue) +
@@ -113,7 +116,7 @@ plot_revenue_forecasts <- function(optimal_forecast,
               revenue,
               color = "#369093") +
     ggtitle("Effect of price optimization on expected revenue",
-            subtitle = "TODO product name") + # TODO
+            subtitle = paste("Revenue optimization for:", print(dd))) 
     xlab(NULL) +
     ylab("Revenue") +
     theme_minimal() +
@@ -149,10 +152,7 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
                                     plot_font_size){
   
   # translate product_name to product_id
-  prod <- data_to_arima %>% 
-    filter(product_name %in% prod) %>% 
-    pull(product) %>% 
-    head(1)
+  chosen_product <- translate_input(prod)
   
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
