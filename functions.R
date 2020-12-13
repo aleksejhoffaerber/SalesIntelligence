@@ -118,7 +118,7 @@ plot_revenue_forecasts <- function(optimal_forecast,
               revenue,
               color = "#369093") +
     ggtitle("Effect of price optimization on expected revenue",
-            subtitle = print(pr_name)) 
+            subtitle = pr_name) +
     xlab(NULL) +
     ylab("Revenue") +
     theme_minimal() +
@@ -152,9 +152,11 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
                                     prod,
                                     data_to_arima,
                                     plot_font_size){
+  # keep current product_name for later naming
+  pr_name <- prod
   
   # translate product_name to product_id
-  chosen_product <- translate_input(prod)
+  prod <- translate_input(prod)
   
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
@@ -166,21 +168,32 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
                      yend = pred_quantity),
                  color = "#DAD4D4") +
     autolayer(data_to_arima %>% 
-                filter(product %in% product), color = "#369093") +
-    facet_wrap(~product, scales = "free") +
-    ggtitle("Effect of price optimization on expected sales quantity") +
+                filter(product %in% prod), color = "#369093") +
+    # facet_wrap(~product, scales = "free") +
+    ggtitle("Effect of price optimization on expected sales quantity",
+            subtitle = pr_name) +
     xlab(NULL) +
-    ylab("Revenue") +
+    ylab("Quantity") +
     theme_minimal() +
     theme(legend.position = "none",
-          axis.text.x = element_text(angle = 45, hjust = 1),
           text = element_text(colour = "#DAD4D4"),
-          panel.grid = element_line(colour = "#423C3C"),
+          axis.text = element_text(colour = "#BCB1B1", 
+                                   size = plot_font_size, 
+                                   angle = 45, 
+                                   hjust = 1),
           axis.ticks = element_line(colour = "#BCB1B1"),
-          axis.text = element_text(colour = "#BCB1B1"),
+          axis.title = element_text(size = plot_font_size),
+          plot.title = element_text(size = plot_font_size),
           plot.background = element_rect(fill = "#2D3741", color = "transparent"),
+          
+          
+          panel.grid = element_line(colour = "#423C3C"),
           panel.border = element_rect(fill = "transparent", colour = "#BCB1B1"),
-          strip.text = element_text(colour = "#DAD4D4"))
+          panel.background = element_rect(fill = "#2D3741"),
+          
+          strip.text = element_text(colour = "#DAD4D4"),
+          plot.subtitle = element_text(size = plot_font_size - 5)
+    )
 }
 
 # Segment rules for RFM

@@ -115,13 +115,27 @@ ui <- dashboardPage(
               fluidRow(
                 column(12,
                        uiOutput("info_boxes"),
-                       withSpinner(plotOutput("test_plot"), type = 7),
-                       align = "center"),
-                tags$head(tags$style(HTML('.row {width: 90%;}'))))
+                       withSpinner(
+                         plotOutput(outputId="test_plot", width="750px",height="300px",align = "center"), type = 7)),
+                tags$head(tags$style(HTML('.row {width: 90%;}')))),
+              fluidRow(
+                column(12,
+                       plotOutput(outputId="demand_plot", width="750px",height="300px",align = "center")),
+                       tags$head(tags$style(HTML('.row {width: 90%;}'))))
+                #        ,            
+                #        # 
+                # 
+              # fluidRow(
+              #   column(6,
+              #          plotOutput(outputId="test_plot", width="300px",height="300px")),  
+              #   column(6,
+              #          plotOutput(outputId="demand_plot", width="300px",height="300px")),
+              #   tags$head(tags$style(HTML('.row {width: 90%;}'))))
       )
     )
   )
 )
+
 
 server <- function(input, output, session){
   # Menu before optimizing
@@ -142,6 +156,18 @@ server <- function(input, output, session){
       )
     )
     })
+  
+  
+  demand_forecast <- eventReactive(input$run_optimization, {
+    suppressMessages(
+      # Print to suppress message about groups from ggplot
+      print(
+        get_forecasts(input$product_name, data_to_arima, models) %>% 
+          get_optimal_forecast() %>% 
+          plot_quantity_forecasts(input$product_name, data_to_arima, plot_font_size)
+      )
+    )
+  })
   
   observeEvent(input$segments, 
                updateSelectizeInput(session,
@@ -182,6 +208,10 @@ server <- function(input, output, session){
   output$test_plot <- renderPlot({
     update_data()
   })
+  output$demand_plot <- renderPlot({
+    demand_forecast()
+  })
 }
 
 shinyApp(ui, server)
+
