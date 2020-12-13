@@ -98,8 +98,10 @@ plot_revenue_forecasts <- function(optimal_forecast,
                                    data_to_arima,
                                    plot_font_size){
   
+  # keep current product_name for later naming
+  pr_name <- chosen_product
+  
   # translate product_name to product_id
-  dd <- chosen_product
   chosen_product <- translate_input(chosen_product)
   
   optimal_forecast %>% 
@@ -116,7 +118,7 @@ plot_revenue_forecasts <- function(optimal_forecast,
               revenue,
               color = "#369093") +
     ggtitle("Effect of price optimization on expected revenue",
-            subtitle = paste("Revenue optimization for:", print(dd))) 
+            subtitle = paste("Revenue optimization for:", print(pr_name))) 
     xlab(NULL) +
     ylab("Revenue") +
     theme_minimal() +
