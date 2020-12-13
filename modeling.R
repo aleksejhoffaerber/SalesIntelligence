@@ -117,7 +117,10 @@ segments <- create_segments(rfm_result)
 data_to_arima <- data_to_arima %>%
   left_join(segments %>% 
               select(customer_id, segment),
-            by = c("product" = "customer_id"))
+            by = c("product" = "customer_id")) %>% 
+  left_join(clean_names %>% 
+              mutate(product = as.character(product)),
+            by = c("product" = "product"))
 
 # Parallelize
 plan(multisession)
