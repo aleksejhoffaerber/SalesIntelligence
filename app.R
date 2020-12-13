@@ -82,7 +82,7 @@ ui <- dashboardPage(
     selectizeInput("segments", "Filter products by segment",
                    choices = unique(data_to_arima$segment),
                    multiple = TRUE),
-    selectizeInput("product", "Select product",
+    selectizeInput("product_name", "Select product",
                    choices = sort(unique(data_to_arima$product_name)),
                    multiple = FALSE),
     actionButton("run_optimization", "Run price optimization"),
