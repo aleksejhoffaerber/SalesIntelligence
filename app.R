@@ -115,27 +115,24 @@ ui <- dashboardPage(
               fluidRow(
                 column(12,
                        uiOutput("info_boxes"),
-                       withSpinner(
-                         plotOutput(outputId="test_plot", width="750px",height="300px",align = "center"), type = 7)),
-                tags$head(tags$style(HTML('.row {width: 90%;}')))),
+                       plotOutput(outputId = "revenue_plot",
+                                  width = "750px",
+                                  height = "300px") %>% 
+                         withSpinner(type = 7),
+                       align = "center"),
+                tags$head(tags$style(HTML(
+                  '.row {width: 90%;}.info-box-content {text-align: left;}')))),
               fluidRow(
                 column(12,
-                       plotOutput(outputId="demand_plot", width="750px",height="300px",align = "center")),
-                       tags$head(tags$style(HTML('.row {width: 90%;}'))))
-                #        ,            
-                #        # 
-                # 
-              # fluidRow(
-              #   column(6,
-              #          plotOutput(outputId="test_plot", width="300px",height="300px")),  
-              #   column(6,
-              #          plotOutput(outputId="demand_plot", width="300px",height="300px")),
-              #   tags$head(tags$style(HTML('.row {width: 90%;}'))))
+                       plotOutput(outputId = "demand_plot",
+                                  width = "750px",
+                                  height = "300px"),
+                       align = "center"),
+                tags$head(tags$style(HTML('.row {width: 90%;}'))))
       )
     )
   )
 )
-
 
 server <- function(input, output, session){
   # Menu before optimizing
@@ -205,7 +202,7 @@ server <- function(input, output, session){
   output$rfm_monetary_segments <- renderPlot({
     rfm_monetary_segments
   }, height = 600, width = 750)
-  output$test_plot <- renderPlot({
+  output$revenue_plot <- renderPlot({
     update_data()
   })
   output$demand_plot <- renderPlot({
