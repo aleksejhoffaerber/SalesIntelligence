@@ -184,14 +184,6 @@ server <- function(input, output, session){
     
     shinyalert("Optimizing", type = "info", showConfirmButton = FALSE)
     
-    output$info_boxes <- renderUI({
-      fluidRow(
-        infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
-        infoBox("Revenue increasement", "10%", "Description", icon("percent")),
-        infoBox("Something", 200, "Description", icon("chart-line"))
-      )
-    })
-    
     output$sidebar <- renderMenu({
       sidebarMenu(id = "menu",
                   menuItem("RFM", tabName = "rfm"),
@@ -203,6 +195,31 @@ server <- function(input, output, session){
     forecasts <- get_forecasts(input$product_name, data_to_arima, models)
     
     optimal_forecast <- get_optimal_forecast(forecasts)
+    
+    output$info_boxes <- renderUI({
+      fluidRow(
+        infoBox("Optimized revenue",
+                paste0(intToUtf8(163),
+                       number_format(0.01)(
+                         optimal_forecast$pred_revenue)),
+                paste0("Up from ",
+                       paste0(intToUtf8(163),
+                              number_format(0.01)(
+                                optimal_forecast$pred_revenue_normal))),
+                icon("pound-sign")),
+        infoBox("Revenue increasement", 
+                percent_format(0.1)(optimal_forecast$pred_revenue / 
+                                      optimal_forecast$pred_revenue_normal - 1)
+                , "Compared to no optimization",
+                icon("percent")),
+        infoBox("Optimized price",
+                paste0(intToUtf8(163),
+                       number_format(0.01)(
+                         optimal_forecast$new_price)),
+                "For the next month",
+                icon("balance-scale"))
+      )
+    })
     
     output$revenue_plot <- renderPlot({
       suppressMessages(print(
