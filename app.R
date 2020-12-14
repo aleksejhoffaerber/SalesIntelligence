@@ -77,12 +77,12 @@ rfm_monetary_segments <- segments %>%
 
 ui <- dashboardPage(
   title = "Sales dashboard",
-  dashboardHeader(),
+  dashboardHeader(title = "Price optimization"),
   dashboardSidebar(
     selectizeInput("segments", "Filter products by segment",
                    choices = unique(data_to_arima$segment),
                    multiple = TRUE),
-    selectizeInput("product_name", "Select product",
+    selectizeInput("product_name", "Select product to optimize",
                    choices = sort(unique(data_to_arima$product_name)),
                    multiple = FALSE) %>% 
       tagAppendAttributes(class = "larger"),
@@ -96,8 +96,10 @@ ui <- dashboardPage(
             '#product_name+ div>.selectize-input {height: 60px !important;',
             'padding-top: 0px !important}',
             '#segments+ div>.selectize-input',
-            '{margin-bottom: 0px; padding-top: 0px !important}',
-            '.larger {padding-top: 0px !important}'
+            '{margin-bottom: 0px; padding-top: 2px !important}',
+            '.larger {padding-top: 0px !important}',
+            '#run_optimization {background-color: #00C0EF; color: #FFFFFF}',
+            '.shiny-bound-input.action-button {margin: auto !important}'
       ))))
     ),
   dashboardBody(
