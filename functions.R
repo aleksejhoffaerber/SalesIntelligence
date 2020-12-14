@@ -6,6 +6,7 @@ translate_input <- function(input) {
     head(1)
 }
 
+
 # Make forecasts for different prices
 get_forecasts <- function(chosen_product, data_to_arima, models){
 
@@ -191,6 +192,58 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
           panel.border = element_rect(fill = "transparent", colour = "#BCB1B1"),
           panel.background = element_rect(fill = "#2D3741"),
           
+          strip.text = element_text(colour = "#DAD4D4"),
+          plot.subtitle = element_text(size = plot_font_size - 5)
+    )
+}
+
+# Plots to show the revenue effect due to price optimization
+plot_revenue_price <- function(all_prices,
+                               chosen_product,
+                               data_to_arima,
+                               plot_font_size){
+  
+  # keep current product_name for later naming
+  pr_name <- chosen_product
+  
+  # translate product_name to product_id
+  chosen_product <- translate_input(chosen_product)
+  
+  all_prices %>% 
+    select(-yearmonth) %>% 
+    as.data.frame() %>% 
+    ggplot() +
+    # geom_point(color = "#DAD4D4") +
+    geom_line(aes(y = pred_revenue, x = new_price), color = "#369093") +
+    geom_point(aes(y = original_revenue, x = original_price), color = "#369093") +
+    geom_point(data = . %>% 
+                 slice(1) %>% 
+                 as.data.frame(), 
+               aes(y = pred_revenue, x = new_price), color = "#DAD4D4") +
+    ggtitle("Price changes needed for optimized revenue") +
+    xlab("Product price") +
+    ylab("Revenue") +
+    theme_minimal() +
+    theme(text = element_text(colour = "#DAD4D4"),
+          panel.grid = element_line(colour = "#423C3C"),
+          panel.background = element_rect(fill = "#2D3741"),
+          axis.text = element_text(colour = "#BCB1B1", 
+                                   size = plot_font_size, 
+                                   angle = 45, 
+                                   hjust = 1),
+          plot.background = element_rect(fill = "#2D3741", 
+                                         color = "transparent"),
+          legend.position = "none",
+          legend.key.width = unit(2, "cm"),
+          legend.box.margin = margin(t = 13),
+          legend.background = element_rect(fill = "#2D3741"),
+          legend.text = element_text(size = plot_font_size),
+          legend.title = element_text(size = plot_font_size),
+          plot.title = element_text(size = plot_font_size),
+          axis.title = element_text(size = plot_font_size),
+          axis.ticks = element_line(colour = "#BCB1B1"),
+          panel.border = element_rect(fill = "transparent",
+                                      colour = "#BCB1B1"),
           strip.text = element_text(colour = "#DAD4D4"),
           plot.subtitle = element_text(size = plot_font_size - 5)
     )
