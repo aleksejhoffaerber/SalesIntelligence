@@ -1,4 +1,4 @@
-# Translate product_name to product id
+# Translate product name to product id
 translate_input <- function(input, data_to_arima) {
   data_to_arima %>% 
     filter(product_name %in% input) %>% 
@@ -8,16 +8,16 @@ translate_input <- function(input, data_to_arima) {
 
 # Make forecasts for different prices
 get_forecasts <- function(chosen_product, data_to_arima, models){
-
-  # Translate product_name to product id
+  # Translate product name to product id
   chosen_product <- translate_input(chosen_product, data_to_arima)
   
+  # Make price data for forecasts
   new_data <- data_to_arima %>% 
-    filter(product %in% chosen_product) %>% 
+    filter(product == chosen_product) %>% 
     # Get the last observation
-    group_by(product) %>% 
     slice(n()) %>%
-    mutate(yearmonth = yearmonth + 1, # TODO depending on duration
+    # One month ahead
+    mutate(yearmonth = yearmonth + 1,
            original_price = price_mean,
            # Price can vary +- 30 percent
            price_mean = list(c(seq(price_mean,
@@ -31,6 +31,7 @@ get_forecasts <- function(chosen_product, data_to_arima, models){
     filter(price_mean > 0) %>% 
     ungroup()
   
+  # Get the corresponding model
   model_to_use <- models %>% 
     filter(product == new_data %>% 
              slice(1) %>% 
@@ -59,6 +60,7 @@ get_forecasts <- function(chosen_product, data_to_arima, models){
                  select(product,
                         yearmonth,
                         original_quantity = quantity_sum)) %>% 
+    # Calculate revenues
     mutate(original_revenue = original_quantity * original_price,
            pred_revenue = pred_quantity * new_price) %>% 
     # Filter out negative quantities just in case
@@ -70,18 +72,20 @@ get_forecasts <- function(chosen_product, data_to_arima, models){
   models %>% 
     filter(product == new_data %>% 
              slice(1) %>% 
-             pull(product)) %>% 
+             pull(product)) %>%
     forecast(data_to_arima %>% 
-               filter(product %in% product) %>% 
+               filter(product == chosen_product) %>% 
                # Get the last observation
-               group_by(product) %>% 
                slice(n()) %>%
+               # One month ahead
                mutate(yearmonth = yearmonth + 1)) %>% 
+    # Non-negative
     mutate(pred_quantity_normal = ifelse(.mean < 0, 0, .mean)) %>% 
     as_tsibble() %>% 
     select(product, yearmonth, pred_quantity_normal) %>% 
     as_tibble() %>% 
     inner_join(forecasts) %>% 
+    # Predicted normal revenue without price optimization
     mutate(pred_revenue_normal = pred_quantity_normal * original_price)
 }
 
@@ -93,17 +97,18 @@ get_optimal_forecast <- function(forecasts){
     as_tsibble(key = "product")
 }
 
+# Plots revenue vs time
 plot_revenue_forecasts <- function(optimal_forecast,
                                    chosen_product,
                                    data_to_arima,
                                    plot_font_size){
   
-  # keep current product_name for later naming
-  pr_name <- chosen_product
+  # Keep current product_name for later naming
+  product_name <- chosen_product
   
-  # translate product_name to product_id
+  # Translate product_name to product_id
   chosen_product <- translate_input(chosen_product, data_to_arima)
-  
+  prod
   optimal_forecast %>% 
     autoplot(pred_revenue) +
     geom_point(color = "#DAD4D4") +
@@ -118,7 +123,7 @@ plot_revenue_forecasts <- function(optimal_forecast,
               revenue,
               color = "#369093") +
     ggtitle("Expected revenue",
-            subtitle = pr_name) +
+            subtitle = product_name) +
     xlab(NULL) +
     ylab("Revenue") +
     theme_minimal() +
@@ -147,16 +152,16 @@ plot_revenue_forecasts <- function(optimal_forecast,
     )
 }
 
-# FIXME
+# Plots quantity vs time
 plot_quantity_forecasts <- function(optimal_price_tibble,
-                                    prod,
+                                    chosen_product,
                                     data_to_arima,
                                     plot_font_size){
-  # keep current product_name for later naming
-  pr_name <- prod
+  # Keep current product_name for later naming
+  product_name <- chosen_product
   
-  # translate product_name to product_id
-  prod <- translate_input(prod, data_to_arima)
+  # Translate product_name to product_id
+  chosen_product <- translate_input(chosen_product, data_to_arima)
   
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
@@ -168,10 +173,9 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
                      yend = pred_quantity),
                  color = "#DAD4D4") +
     autolayer(data_to_arima %>% 
-                filter(product %in% prod), color = "#369093") +
-    # facet_wrap(~product, scales = "free") +
+                filter(product == chosen_product), color = "#369093") +
     ggtitle("Expected sales quantity",
-            subtitle = pr_name) +
+            subtitle = product_name) +
     xlab(NULL) +
     ylab("Quantity") +
     theme_minimal() +
@@ -196,23 +200,22 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
     )
 }
 
-# Plots to show the revenue effect due to price optimization
+# Plots the revenue effect due to price optimization
 plot_revenue_price <- function(all_prices,
                                chosen_product,
                                data_to_arima,
                                plot_font_size){
   
-  # keep current product_name for later naming
-  pr_name <- chosen_product
+  # Keep current product_name for later naming
+  product_name <- chosen_product
   
-  # translate product_name to product_id
+  # Translate product_name to product_id
   chosen_product <- translate_input(chosen_product, data_to_arima)
   
   all_prices %>% 
     select(-yearmonth) %>% 
     as.data.frame() %>% 
     ggplot() +
-    # geom_point(color = "#DAD4D4") +
     geom_line(aes(y = pred_revenue, x = new_price), color = "#369093") +
     geom_point(aes(y = pred_revenue_normal, x = original_price), color = "#369093") +
     geom_point(data = . %>% 
@@ -220,7 +223,7 @@ plot_revenue_price <- function(all_prices,
                  as.data.frame(), 
                aes(y = pred_revenue, x = new_price), color = "#DAD4D4") +
     ggtitle("Expected price vs revenue",
-            subtitle = pr_name) +
+            subtitle = product_name) +
     xlab("Product price") +
     ylab("Revenue") +
     theme_minimal() +

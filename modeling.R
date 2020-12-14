@@ -2,15 +2,14 @@
 
 # Get paths of all input files and load them
 files <- paste0("Data/", list.files("Data/", pattern = "*.csv"))
-
 data_by_invoice <- map(files,
                        ~fread(.x) %>% 
                          as_tibble()) %>% 
   reduce(bind_rows)
 
+# Combine same products with different colors
 data_unified_names <- data_by_invoice %>% 
   mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
-         # Combine same products with different colors
          product = str_sub(StockCode, 1, 5))
 
 # Harmonizing the product names
@@ -89,6 +88,7 @@ data_to_arima <- data_monthly %>%
   as_tsibble(key = "product", index = "yearmonth") %>% 
   fill_gaps()
 
+# Get the products to use
 product_scope <- data_to_arima %>% 
   distinct(product) %>% 
   pull()  
@@ -103,9 +103,6 @@ rfm_result <- data_unified_names %>%
                   revenue,
                   max(as.Date(.$InvoiceDate)))
 
-# Extract RFM table
-rfm_table <- rfm_result$rfm
-
 # Include product segments
 segment_names <- c("Champions", "Good", "Average",
                    "New", "Promising", "Need Attention", "About To Sleep",
@@ -113,7 +110,7 @@ segment_names <- c("Champions", "Good", "Average",
 
 segments <- create_segments(rfm_result)
 
-# Attach segment to monthly data for filtering in the dashboard
+# Attach segments and names to monthly data for filtering in the dashboard
 data_to_arima <- data_to_arima %>%
   left_join(segments %>% 
               select(customer_id, segment),
@@ -131,8 +128,8 @@ models <- data_to_arima %>%
   model(ARIMA(quantity_sum ~ price_mean))
 (toc <- Sys.time() - tic)
 
+# Save for faster computing in the Shiny app
 saveRDS(models, "Data/models.RDS")
 saveRDS(segments, "Data/segments.RDS")
 saveRDS(rfm_result, "Data/rfm_results.RDS")
 saveRDS(data_to_arima, "Data/data_to_arima.RDS")
-

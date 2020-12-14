@@ -19,21 +19,25 @@ library(shinydashboard)
 library(shinycssloaders)
 library(dashboardthemes)
 
+# English month names in deployment
 Sys.setlocale("LC_ALL","C")
 
-p_value_threshold <- 0.05
-
 plot_font_size <- 20
+
+# For structural breaks
+p_value_threshold <- 0.05
 
 source("functions.R")
 # source("modeling.R")
 
+# Read RDS instead of running models in Shiny server
 models <- readRDS("Data/models.RDS")
 segments <- readRDS("Data/segments.RDS")
 rfm_result <- readRDS("Data/rfm_results.RDS")
 data_to_arima <- readRDS("Data/data_to_arima.RDS")
 
 # Plotting ----------------------------------------------------------------
+
 # Make RFM heat map
 rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
   # Fix missing tiles
@@ -56,11 +60,11 @@ rfm_plot <- rfm_heatmap(rfm_result, print_plot = FALSE) +
         axis.title = element_text(size = plot_font_size))
 
 # Segment plot and monetary contribution
-# Reorder to show product segment hierarchy
 rfm_monetary_segments <- segments %>%
   group_by(segment) %>%
   summarise(median = median(amount)) %>%
   arrange(desc(median)) %>%
+  # Reorder to show product segment hierarchy
   mutate(segment = fct_reorder(segment, median)) %>%
   ggplot(aes(x = median, y = segment, fill = segment)) +
   geom_col() +
@@ -96,6 +100,7 @@ ui <- dashboardPage(
                 sidebarMenuOutput("sidebar")
     ),
     tags$head(tags$style(HTML(
+      # Css to adjust sidebar spacing and coloring
       paste('.row {width: 90%;}',
             '#product_name+ div>.selectize-input {height: 60px !important;',
             'padding-top: 0px !important}',
@@ -113,6 +118,7 @@ ui <- dashboardPage(
     
     useShinyalert(),
     
+    # Main content
     tabItems(
       tabItem(tabName = "rfm",
               fluidRow(
@@ -140,14 +146,13 @@ ui <- dashboardPage(
                 tags$head(tags$style(HTML(
                   paste0('.row {width: 90%;}',
                          '.info-box-content {text-align: left;}')))))
-              
       )
     )
   )
 )
 
 server <- function(input, output, session){
-  # Menu before optimizing
+  # Menu before optimizing without results tab
   output$sidebar <- renderMenu({
     sidebarMenu(id = "menu",
                 menuItem("RFM", tabName = "rfm"),
@@ -155,6 +160,16 @@ server <- function(input, output, session){
     )
   })
   
+  # Static RFM and RFM segment plots
+  output$rfm_plot <- renderPlot({
+    rfm_plot
+  }, height = 600, width = 750)
+  
+  output$rfm_monetary_segments <- renderPlot({
+    rfm_monetary_segments
+  }, height = 600, width = 750)
+  
+  # Filter functionality according to RFM segment
   observeEvent(input$segments, 
                updateSelectizeInput(session,
                                     "product_name",
@@ -164,10 +179,16 @@ server <- function(input, output, session){
                                       unique())
   )
   
+  # Optimization on button click
   observeEvent(input$run_optimization, {
     
-    shinyalert("Optimizing", type = "info", showConfirmButton = FALSE)
+    # Optimizing popup
+    shinyalert("Optimizing...",
+               type = "info",
+               closeOnEsc = FALSE,
+               showConfirmButton = FALSE)
     
+    # Update sidebar to include results tab
     output$sidebar <- renderMenu({
       sidebarMenu(id = "menu",
                   menuItem("RFM", tabName = "rfm"),
@@ -176,10 +197,11 @@ server <- function(input, output, session){
       )
     })
     
+    # Make forecasts and get the optimal one
     forecasts <- get_forecasts(input$product_name, data_to_arima, models)
-    
     optimal_forecast <- get_optimal_forecast(forecasts)
     
+    # Boxes with information about the results
     output$info_boxes <- renderUI({
       fluidRow(
         infoBox("Optimized price",
