@@ -19,6 +19,8 @@ library(shinydashboard)
 library(shinycssloaders)
 library(dashboardthemes)
 
+Sys.setlocale("LC_ALL","C")
+
 p_value_threshold <- 0.05
 
 plot_font_size <- 20
