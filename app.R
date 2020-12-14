@@ -172,7 +172,9 @@ server <- function(input, output, session){
       print(
         get_forecasts(input$product_name, data_to_arima, models) %>% 
           get_optimal_forecast() %>% 
-          plot_revenue_forecasts(input$product_name, data_to_arima, plot_font_size)
+          plot_revenue_forecasts(input$product_name,
+                                 data_to_arima,
+                                 plot_font_size)
       )
     )
     })
@@ -183,7 +185,9 @@ server <- function(input, output, session){
       print(
         get_forecasts(input$product_name, data_to_arima, models) %>% 
           get_optimal_forecast() %>% 
-          plot_quantity_forecasts(input$product_name, data_to_arima, plot_font_size)
+          plot_quantity_forecasts(input$product_name,
+                                  data_to_arima,
+                                  plot_font_size)
       )
     )
   })
@@ -200,7 +204,7 @@ server <- function(input, output, session){
   
   observeEvent(input$segments, 
                updateSelectizeInput(session,
-                                    "product",
+                                    "product_name",
                                     choices = data_to_arima %>% 
                                       filter(segment %in% input$segments) %>% 
                                       pull(product_name) %>% 
@@ -231,12 +235,15 @@ server <- function(input, output, session){
   output$rfm_plot <- renderPlot({
     rfm_plot
   }, height = 600, width = 750)
+  
   output$rfm_monetary_segments <- renderPlot({
     rfm_monetary_segments
   }, height = 600, width = 750)
+  
   output$revenue_plot <- renderPlot({
     update_data()
   })
+  
   output$demand_plot <- renderPlot({
     demand_forecast()
   })
