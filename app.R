@@ -142,8 +142,7 @@ ui <- dashboardPage(
                 column(12,
                        plotOutput(outputId = "demand_plot",
                                   width = "750px",
-                                  height = "300px") %>% 
-                         withSpinner(type = 7),
+                                  height = "300px"),
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}')))),
               
@@ -151,8 +150,7 @@ ui <- dashboardPage(
                 column(12,
                        plotOutput(outputId = "price_rev_plot",
                                   width = "750px",
-                                  height = "300px") %>% 
-                         withSpinner(type = 7),
+                                  height = "300px"),
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}'))))
               
