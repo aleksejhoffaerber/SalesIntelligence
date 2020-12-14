@@ -215,7 +215,7 @@ plot_revenue_price <- function(all_prices,
     ggplot() +
     # geom_point(color = "#DAD4D4") +
     geom_line(aes(y = pred_revenue, x = new_price), color = "#369093") +
-    geom_point(aes(y = original_revenue, x = original_price), color = "#369093") +
+    geom_point(aes(y = pred_revenue_normal, x = original_price), color = "#369093") +
     geom_point(data = . %>% 
                  slice(1) %>% 
                  as.data.frame(), 
