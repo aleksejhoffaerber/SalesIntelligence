@@ -196,6 +196,12 @@ server <- function(input, output, session){
     
     output$info_boxes <- renderUI({
       fluidRow(
+        infoBox("Optimized price",
+                paste0(intToUtf8(163),
+                       number_format(0.01)(
+                         optimal_forecast$new_price)),
+                "For the next month",
+                icon("balance-scale")),
         infoBox("Optimized revenue",
                 paste0(intToUtf8(163),
                        number_format(0.01)(
@@ -209,13 +215,7 @@ server <- function(input, output, session){
                 percent_format(0.1)(optimal_forecast$pred_revenue / 
                                       optimal_forecast$pred_revenue_normal - 1)
                 , "Compared to no optimization",
-                icon("percent")),
-        infoBox("Optimized price",
-                paste0(intToUtf8(163),
-                       number_format(0.01)(
-                         optimal_forecast$new_price)),
-                "For the next month",
-                icon("balance-scale"))
+                icon("percent"))
       )
     })
     
