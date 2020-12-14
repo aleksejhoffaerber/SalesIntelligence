@@ -10,6 +10,7 @@ library(tsibble)
 library(stringr)
 library(lubridate)
 library(tidyverse)
+library(shinyalert)
 library(data.table)
 library(strucchange)
 library(future.apply)
@@ -107,6 +108,8 @@ ui <- dashboardPage(
       theme = "grey_dark"
     ),
     
+    useShinyalert(),
+    
     tabItems(
       tabItem(tabName = "rfm",
               fluidRow(
@@ -179,6 +182,8 @@ server <- function(input, output, session){
   
   observeEvent(input$run_optimization, {
     
+    shinyalert("Optimizing", type = "info", showConfirmButton = FALSE)
+    
     output$info_boxes <- renderUI({
       fluidRow(
         infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
@@ -227,6 +232,8 @@ server <- function(input, output, session){
     
     # Switch tab to results after optimizing
     updateTabItems(session, "menu", "results")
+    
+    closeAlert()
   })
   
   output$rfm_plot <- renderPlot({
