@@ -1,0 +1,194 @@
+---
+title: \vspace{4in} EDA - BAN400 R Programming for Data Science \vspace{4in}
+author: "Group 1"
+date: "12/14/2020"
+geometry: margin=1in
+output: pdf_document
+documentclass: article
+classoption: a4paper
+---
+
+```{r setup, include = FALSE}
+# packages
+library(knitr)
+library(xtable)
+library(patchwork)
+library(tidyverse)
+library(data.table)
+library(tsibble)
+library(fable)
+
+# settings
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.align="center")
+```
+
+```{r setup 2, echo=F}
+#### Data ####
+
+files <- paste0("Data/", list.files("Data/", pattern = "*.csv"))
+
+data_monthly <- map(files,
+                       ~fread(.x) %>% 
+                         as_tibble()) %>% 
+  reduce(bind_rows) %>%
+  mutate(yearmonth = yearmonth(as.Date(InvoiceDate)),
+         # Combine same products with different colors
+         product = str_sub(StockCode, 1, 5)) %>%
+  filter(Quantity > 0,
+         Price > 0,
+         # Remove those without numbers in product ID
+         !str_detect(product, "^[[:alpha:]]")) %>% 
+  group_by(yearmonth, product,Country) %>% 
+  # Calculate amount of sales, average prices, revenue and receipt amount
+  summarise(quantity_sum = sum(Quantity, na.rm = TRUE),
+            price_mean = weighted.mean(Price, Quantity, na.rm = TRUE),
+            revenue = sum(Price * Quantity),
+            n_receipts = n())
+
+
+#### Price Variation within Country ####
+
+# Density - Free Scales
+p1 <- data_monthly %>%
+  ggplot(aes(x = price_mean, fill = Country)) +
+  geom_density() +
+  facet_wrap(~ Country, scales = "free") +
+  theme_minimal() +
+  xlab("Price") +
+  ylab("Density") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none")
+
+# Box plot
+p2 <- data_monthly %>%
+  ggplot(aes(x = Country, y = price_mean, fill = Country)) +
+  geom_boxplot() +
+  theme_minimal() +
+  xlab("Country") +
+  ylab("Price") +
+  ylim(0,150) +
+  theme_minimal() +
+  coord_flip() + 
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none")
+
+# Price Variation within Country and Product
+p3 <- data_monthly %>% 
+  ggplot(aes(x = product, y = price_mean)) +
+  geom_point() +
+  facet_wrap(~ Country, scales = "free") +
+  xlab("Products") +
+  ylab("Price") +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  theme(plot.title = element_text(hjust = 0.5))
+
+#### Collapsed ####
+
+data_monthly1 <- data_monthly %>%
+  group_by(yearmonth, product) %>% 
+  # Calculate amount of sales, average prices, revenue and receipt amount
+  summarise(price_mean1 = weighted.mean(price_mean, quantity_sum, na.rm = TRUE),
+            revenue = sum(revenue),
+            n_receipts = sum(n_receipts))
+
+# Density
+p5 <- data_monthly1 %>%
+  ggplot(aes(x = price_mean1, fill="gray")) +
+  geom_density() +
+  theme_minimal() +
+  xlim(0, 20) +
+  xlab("Price") +
+  ylab("Density") +
+  ggtitle("Price Density Distribution") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none")
+
+# Box plot
+p6 <- data_monthly1 %>%
+  ggplot(aes(x = "", y = price_mean1,fill="red")) +
+  geom_boxplot() +
+  theme_minimal() +
+  xlab("") +
+  ylab("Price") +
+  ggtitle("Box Plot") +
+  theme_minimal() +
+  coord_flip() + 
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "none")
+
+# Price Variation within Product
+p7 <- data_monthly1 %>% 
+  ggplot(aes(x = product, y = price_mean1)) +
+  geom_point() +
+  xlab("Products") +
+  ylab("Price") +
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  ggtitle("Price - Product Distribution") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+fig1 <- (p5 + p7) / p6
+
+#### At least 24 months ####
+counts <- data_monthly %>%
+  group_by(product, Country) %>% 
+  # Keep only products with two years of observations or more
+  mutate(n_months = n()) %>% 
+  filter(n_months >= 24) %>%
+  group_by(Country) %>%
+  summarise(Count = n()) %>%
+  ungroup() %>%
+  mutate(Perc. = paste(100*(round(Count / sum(Count),4)),"%"))
+```
+
+# Price Distribution on Country Level
+The graphs below mainly to create an initial idea how prices vary across countries within or the same
+or different products. Generally speaking we see the same pattern across different countries and the 
+prices tend to be rightly skewed with most products priced at the lower end of the distribution.
+The Box - Plot also shows the presence of several large price points across the board. As seen in Fig.3
+we also see the same price variation across countries for roughly the same products. 
+\newline
+```{r, fig.width=14.5, fig.height=7,fig.cap="Price Density Distribution"}
+p1
+```
+```{r, fig.width=14.5, fig.height=8,fig.cap="Box Plot"}
+p2
+```
+```{r, fig.width=14.5, fig.height=7,fig.cap="Price - Product Distribution"}
+p3
+```
+
+# Price Distribution in General
+In this section we see how prices vary across single products alone and ignore the country dimension. As seen earlier products behave relatively the same across countries, which is expected as the data concerns an online store. The aggregated data shows similar patterns with a right skew price distribution with the presence of several outliers on the right end.
+```{r, fig.width=14.5, fig.height=8,fig.cap="Aggregated Price Distribution"}
+fig1
+```
+
+# Time Horizon & Aggregation
+As the data is going to be used in modeling an optimal price for a forecasting horizon it is
+important to have enough data points and to account for potential outliers. We use ARIMA as a primary
+modeling tool and product needs to have at least 24 months worth of data in each country in order to 
+be considered. As we see in the table below only 4 countries do have products with at least 24 months
+and almost all of them are in the UK.
+Since we deal with the same products across countries and we do not have enough data to carry an
+analysis across countries we decide to collapse the data, obtaining (weighted) average prices on
+monthly levels.
+Products showing significant breaks are filtered out before optimization.
+ 
+```{r results = "asis",echo=F,message=F}
+t1 <- xtable(counts)
+print(t1,comment=FALSE,
+      format.args = list(big.mark = ",", decimal.mark = "."))
+```
