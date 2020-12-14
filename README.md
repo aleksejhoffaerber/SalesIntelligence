@@ -1,3 +1,5 @@
+**Live version available here:**  [https://karoronty.shinyapps.io/SalesIntelligence/](https://karoronty.shinyapps.io/SalesIntelligence/)
+
 Background
 ----------
 In the starting period of a business, it must be decided upon which KPIs should be tracked to ensure sustainable success. Especially in the online retail area, the application of analytics, forecasting, and price optimization gains importance in order to compete with rapid marketplaces. The added value of these can be substantial especially with access to the right data.
