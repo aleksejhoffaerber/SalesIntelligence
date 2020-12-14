@@ -1,17 +1,16 @@
 # Translate product_name to product id
-translate_input <- function(input) {
+translate_input <- function(input, data_to_arima) {
   data_to_arima %>% 
     filter(product_name %in% input) %>% 
     pull(product) %>% 
     head(1)
 }
 
-
 # Make forecasts for different prices
 get_forecasts <- function(chosen_product, data_to_arima, models){
 
   # Translate product_name to product id
-  chosen_product <- translate_input(chosen_product)
+  chosen_product <- translate_input(chosen_product, data_to_arima)
   
   new_data <- data_to_arima %>% 
     filter(product %in% chosen_product) %>% 
@@ -103,7 +102,7 @@ plot_revenue_forecasts <- function(optimal_forecast,
   pr_name <- chosen_product
   
   # translate product_name to product_id
-  chosen_product <- translate_input(chosen_product)
+  chosen_product <- translate_input(chosen_product, data_to_arima)
   
   optimal_forecast %>% 
     autoplot(pred_revenue) +
@@ -157,7 +156,7 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
   pr_name <- prod
   
   # translate product_name to product_id
-  prod <- translate_input(prod)
+  prod <- translate_input(prod, data_to_arima)
   
   optimal_price_tibble %>% 
     autoplot(pred_quantity) +
@@ -207,7 +206,7 @@ plot_revenue_price <- function(all_prices,
   pr_name <- chosen_product
   
   # translate product_name to product_id
-  chosen_product <- translate_input(chosen_product)
+  chosen_product <- translate_input(chosen_product, data_to_arima)
   
   all_prices %>% 
     select(-yearmonth) %>% 
