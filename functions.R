@@ -220,7 +220,8 @@ plot_revenue_price <- function(all_prices,
                  slice(1) %>% 
                  as.data.frame(), 
                aes(y = pred_revenue, x = new_price), color = "#DAD4D4") +
-    ggtitle("Price changes needed for optimized revenue") +
+    ggtitle("Price change needed for optimized revenue",
+            subtitle = "Zoom-in into first prediction, January 2012") +
     xlab("Product price") +
     ylab("Revenue") +
     theme_minimal() +

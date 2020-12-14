@@ -134,13 +134,26 @@ ui <- dashboardPage(
                 tags$head(tags$style(HTML(
                   paste0('.row {width: 90%;}',
                          '.info-box-content {text-align: left;}'))))),
+              
               fluidRow(
                 column(12,
                        plotOutput(outputId = "demand_plot",
                                   width = "750px",
-                                  height = "300px"),
+                                  height = "300px") %>% 
+                         withSpinner(type = 7),
+                       align = "center"),
+                tags$head(tags$style(HTML('.row {width: 90%;}')))),
+              
+              fluidRow(
+                column(12,
+                       plotOutput(outputId = "price_rev_plot",
+                                  width = "750px",
+                                  height = "300px") %>% 
+                         withSpinner(type = 7),
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}'))))
+              
+
       )
     )
   )
@@ -177,6 +190,16 @@ server <- function(input, output, session){
           plot_quantity_forecasts(input$product_name,
                                   data_to_arima,
                                   plot_font_size)
+      )
+    )
+  })
+  
+  price_revenue <- eventReactive(input$run_optimization, {
+    suppressMessages(
+      # Print to suppress message about groups from ggplot
+      print(
+        get_forecasts(input$product_name, data_to_arima, models) %>% 
+          plot_revenue_price(input$product_name, data_to_arima, plot_font_size)
       )
     )
   })
@@ -226,7 +249,10 @@ server <- function(input, output, session){
   output$demand_plot <- renderPlot({
     demand_forecast()
   })
+  output$price_rev_plot <- renderPlot({
+    price_revenue()
+  })
 }
 
 shinyApp(ui, server)
-
+c("BIG DOUGHNUT FRIDGE MAGNETS")
