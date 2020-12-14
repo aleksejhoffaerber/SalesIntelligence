@@ -84,13 +84,22 @@ ui <- dashboardPage(
                    multiple = TRUE),
     selectizeInput("product_name", "Select product",
                    choices = sort(unique(data_to_arima$product_name)),
-                   multiple = FALSE),
+                   multiple = FALSE) %>% 
+      tagAppendAttributes(class = "larger"),
     actionButton("run_optimization", "Run price optimization"),
     hr(),
     sidebarMenu(id = "menu",
                 sidebarMenuOutput("sidebar")
-    )
-  ),
+    ),
+    tags$head(tags$style(HTML(
+      paste('.row {width: 90%;}',
+            '#product_name+ div>.selectize-input {height: 60px !important;',
+            'padding-top: 0px !important}',
+            '#segments+ div>.selectize-input',
+            '{margin-bottom: 0px; padding-top: 0px !important}',
+            '.larger {padding-top: 0px !important}'
+      ))))
+    ),
   dashboardBody(
     shinyDashboardThemes(
       theme = "grey_dark"
@@ -121,7 +130,8 @@ ui <- dashboardPage(
                          withSpinner(type = 7),
                        align = "center"),
                 tags$head(tags$style(HTML(
-                  '.row {width: 90%;}.info-box-content {text-align: left;}')))),
+                  paste0('.row {width: 90%;}',
+                         '.info-box-content {text-align: left;}'))))),
               fluidRow(
                 column(12,
                        plotOutput(outputId = "demand_plot",
