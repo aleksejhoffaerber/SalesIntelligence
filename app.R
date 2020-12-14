@@ -227,45 +227,42 @@ server <- function(input, output, session){
       )
     })
     
+    # Three plots together
     output$combination_plot <- renderPlot({
+      p1 <- isolate(plot_revenue_forecasts(optimal_forecast,
+                                           input$product_name,
+                                           data_to_arima,
+                                           plot_font_size))
       
-      p1 <- plot_revenue_forecasts(optimal_forecast,
-                                   input$product_name,
-                                   data_to_arima,
-                                   plot_font_size)
+      p2 <- isolate(plot_quantity_forecasts(optimal_forecast,
+                                            input$product_name,
+                                            data_to_arima,
+                                            plot_font_size))
       
-      p2 <- plot_quantity_forecasts(optimal_forecast,
-                                    input$product_name,
-                                    data_to_arima,
-                                    plot_font_size)
+      p3 <- isolate(plot_revenue_price(forecasts,
+                                       input$product_name,
+                                       data_to_arima,
+                                       plot_font_size))
       
-      p3 <- plot_revenue_price(forecasts,
-                               input$product_name,
-                               data_to_arima,
-                               plot_font_size)
-      
-      suppressMessages(print(((p1 / p2) | p3) +
-      plot_annotation("Effect of price optimization",
-                      theme = theme(
-                        text = element_text(colour = "#DAD4D4"),
-                        plot.background = element_rect(fill = "#2D3741",
-                                                       color = "transparent"),
-                        plot.title = element_text(size = plot_font_size)))))
+      # Plot without warnings
+      suppressMessages(
+        print(
+          ((p1 / p2) | p3) +
+            plot_annotation(
+              "Effect of price optimization",
+              theme = theme(
+                text = element_text(colour = "#DAD4D4"),
+                plot.background = element_rect(fill = "#2D3741",
+                                               color = "transparent"),
+                plot.title = element_text(size = plot_font_size)))))
     })
     
     # Switch tab to results after optimizing
     updateTabItems(session, "menu", "results")
     
+    # Close optimizing popup
     closeAlert()
   })
-  
-  output$rfm_plot <- renderPlot({
-    rfm_plot
-  }, height = 600, width = 750)
-  
-  output$rfm_monetary_segments <- renderPlot({
-    rfm_monetary_segments
-  }, height = 600, width = 750)
 }
 
 shinyApp(ui, server)
