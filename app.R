@@ -101,7 +101,7 @@ ui <- dashboardPage(
             '#run_optimization {background-color: #00C0EF; color: #FFFFFF}',
             '.shiny-bound-input.action-button {margin: auto !important}'
       ))))
-    ),
+  ),
   dashboardBody(
     shinyDashboardThemes(
       theme = "grey_dark"
@@ -153,7 +153,7 @@ ui <- dashboardPage(
                        align = "center"),
                 tags$head(tags$style(HTML('.row {width: 90%;}'))))
               
-
+              
       )
     )
   )
@@ -178,12 +178,13 @@ server <- function(input, output, session){
   )
   
   observeEvent(input$run_optimization, {
+    
     output$info_boxes <- renderUI({
-    fluidRow(
-      infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
-      infoBox("Revenue increasement", "10%", "Description", icon("percent")),
-      infoBox("Something", 200, "Description", icon("chart-line"))
-    )
+      fluidRow(
+        infoBox("Optimized revenue", "$1000", "Description", icon("dollar-sign")),
+        infoBox("Revenue increasement", "10%", "Description", icon("percent")),
+        infoBox("Something", 200, "Description", icon("chart-line"))
+      )
     })
     
     output$sidebar <- renderMenu({
@@ -191,31 +192,37 @@ server <- function(input, output, session){
                   menuItem("RFM", tabName = "rfm"),
                   menuItem("Segments", tabName = "segments"),
                   menuItem("Results", tabName = "results")
-                  )
-    })
-    
-    forecasts <- get_forecasts(input$product_name, data_to_arima, models)
-    optimal_forecast <- get_optimal_forecast(forecasts)
-    
-    output$revenue_plot <- renderPlot({
-      print(plot_revenue_forecasts(optimal_forecast,
-                                   input$product_name,
-                                   data_to_arima,
-                                   plot_font_size)
       )
     })
     
+    forecasts <- get_forecasts(input$product_name, data_to_arima, models)
+    
+    optimal_forecast <- get_optimal_forecast(forecasts)
+    
+    output$revenue_plot <- renderPlot({
+      suppressMessages(print(
+        plot_revenue_forecasts(optimal_forecast,
+                               input$product_name,
+                               data_to_arima,
+                               plot_font_size)
+      ))
+    })
+    
     output$demand_plot <- renderPlot({
-      plot_quantity_forecasts(optimal_forecast,
-                              input$product_name,
-                              data_to_arima,
-                              plot_font_size)
+      suppressMessages(print(
+        plot_quantity_forecasts(optimal_forecast,
+                                input$product_name,
+                                data_to_arima,
+                                plot_font_size)
+      ))
     })
     output$price_rev_plot <- renderPlot({
-      plot_revenue_price(forecasts,
-                         input$product_name,
-                         data_to_arima,
-                         plot_font_size)
+      suppressMessages(print(
+        plot_revenue_price(forecasts,
+                           input$product_name,
+                           data_to_arima,
+                           plot_font_size)
+      ))
     })
     
     # Switch tab to results after optimizing
