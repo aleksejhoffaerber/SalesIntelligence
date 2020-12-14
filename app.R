@@ -8,6 +8,7 @@ library(scales)
 library(future)
 library(tsibble)
 library(stringr)
+library(patchwork)
 library(lubridate)
 library(tidyverse)
 library(shinyalert)
@@ -129,31 +130,14 @@ ui <- dashboardPage(
               fluidRow(
                 column(12,
                        uiOutput("info_boxes"),
-                       plotOutput(outputId = "revenue_plot",
-                                  width = "750px",
-                                  height = "300px") %>% 
+                       plotOutput(outputId = "combination_plot",
+                                  width = "1200px",
+                                  height = "700px") %>% 
                          withSpinner(type = 7),
                        align = "center"),
                 tags$head(tags$style(HTML(
                   paste0('.row {width: 90%;}',
-                         '.info-box-content {text-align: left;}'))))),
-              
-              fluidRow(
-                column(12,
-                       plotOutput(outputId = "demand_plot",
-                                  width = "750px",
-                                  height = "300px"),
-                       align = "center"),
-                tags$head(tags$style(HTML('.row {width: 90%;}')))),
-              
-              fluidRow(
-                column(12,
-                       plotOutput(outputId = "price_rev_plot",
-                                  width = "750px",
-                                  height = "300px"),
-                       align = "center"),
-                tags$head(tags$style(HTML('.row {width: 90%;}'))))
-              
+                         '.info-box-content {text-align: left;}')))))
               
       )
     )
@@ -219,30 +203,30 @@ server <- function(input, output, session){
       )
     })
     
-    output$revenue_plot <- renderPlot({
-      suppressMessages(print(
-        plot_revenue_forecasts(optimal_forecast,
+    output$combination_plot <- renderPlot({
+      
+      p1 <- plot_revenue_forecasts(optimal_forecast,
+                                   input$product_name,
+                                   data_to_arima,
+                                   plot_font_size)
+      
+      p2 <- plot_quantity_forecasts(optimal_forecast,
+                                    input$product_name,
+                                    data_to_arima,
+                                    plot_font_size)
+      
+      p3 <- plot_revenue_price(forecasts,
                                input$product_name,
                                data_to_arima,
                                plot_font_size)
-      ))
-    })
-    
-    output$demand_plot <- renderPlot({
-      suppressMessages(print(
-        plot_quantity_forecasts(optimal_forecast,
-                                input$product_name,
-                                data_to_arima,
-                                plot_font_size)
-      ))
-    })
-    output$price_rev_plot <- renderPlot({
-      suppressMessages(print(
-        plot_revenue_price(forecasts,
-                           input$product_name,
-                           data_to_arima,
-                           plot_font_size)
-      ))
+      
+      suppressMessages(print(((p1 / p2) | p3) +
+      plot_annotation("Effect of price optimization",
+                      theme = theme(
+                        text = element_text(colour = "#DAD4D4"),
+                        plot.background = element_rect(fill = "#2D3741",
+                                                       color = "transparent"),
+                        plot.title = element_text(size = plot_font_size)))))
     })
     
     # Switch tab to results after optimizing

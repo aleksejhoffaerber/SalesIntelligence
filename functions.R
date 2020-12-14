@@ -118,7 +118,7 @@ plot_revenue_forecasts <- function(optimal_forecast,
                 filter(product == chosen_product),
               revenue,
               color = "#369093") +
-    ggtitle("Effect of price optimization on expected revenue",
+    ggtitle("Expected revenue",
             subtitle = pr_name) +
     xlab(NULL) +
     ylab("Revenue") +
@@ -171,7 +171,7 @@ plot_quantity_forecasts <- function(optimal_price_tibble,
     autolayer(data_to_arima %>% 
                 filter(product %in% prod), color = "#369093") +
     # facet_wrap(~product, scales = "free") +
-    ggtitle("Effect of price optimization on expected sales quantity",
+    ggtitle("Expected sales quantity",
             subtitle = pr_name) +
     xlab(NULL) +
     ylab("Quantity") +
@@ -220,8 +220,8 @@ plot_revenue_price <- function(all_prices,
                  slice(1) %>% 
                  as.data.frame(), 
                aes(y = pred_revenue, x = new_price), color = "#DAD4D4") +
-    ggtitle("Price change needed for optimized revenue",
-            subtitle = "Zoom-in into first prediction, January 2012") +
+    ggtitle("Expected price vs revenue",
+            subtitle = pr_name) +
     xlab("Product price") +
     ylab("Revenue") +
     theme_minimal() +
@@ -230,13 +230,10 @@ plot_revenue_price <- function(all_prices,
           panel.background = element_rect(fill = "#2D3741"),
           axis.text = element_text(colour = "#BCB1B1", 
                                    size = plot_font_size, 
-                                   angle = 45, 
-                                   hjust = 1),
+                                   angle = 45),
           plot.background = element_rect(fill = "#2D3741", 
                                          color = "transparent"),
           legend.position = "none",
-          legend.key.width = unit(2, "cm"),
-          legend.box.margin = margin(t = 13),
           legend.background = element_rect(fill = "#2D3741"),
           legend.text = element_text(size = plot_font_size),
           legend.title = element_text(size = plot_font_size),
