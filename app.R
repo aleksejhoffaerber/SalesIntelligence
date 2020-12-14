@@ -168,42 +168,6 @@ server <- function(input, output, session){
     )
   })
   
-  update_data <- eventReactive(input$run_optimization, {
-    suppressMessages(
-      # Print to suppress message about groups from ggplot
-      print(
-        get_forecasts(input$product_name, data_to_arima, models) %>% 
-          get_optimal_forecast() %>% 
-          plot_revenue_forecasts(input$product_name,
-                                 data_to_arima,
-                                 plot_font_size)
-      )
-    )
-    })
-  
-  demand_forecast <- eventReactive(input$run_optimization, {
-    suppressMessages(
-      # Print to suppress message about groups from ggplot
-      print(
-        get_forecasts(input$product_name, data_to_arima, models) %>% 
-          get_optimal_forecast() %>% 
-          plot_quantity_forecasts(input$product_name,
-                                  data_to_arima,
-                                  plot_font_size)
-      )
-    )
-  })
-  
-  price_revenue <- eventReactive(input$run_optimization, {
-    suppressMessages(
-      # Print to suppress message about groups from ggplot
-      print(
-        get_forecasts(input$product_name, data_to_arima, models) %>% 
-          plot_revenue_price(input$product_name, data_to_arima, plot_font_size)
-      )
-    )
-  })
-  
   observeEvent(input$segments, 
                updateSelectizeInput(session,
                                     "product_name",
@@ -229,7 +193,31 @@ server <- function(input, output, session){
                   menuItem("Results", tabName = "results")
                   )
     })
-
+    
+    forecasts <- get_forecasts(input$product_name, data_to_arima, models)
+    optimal_forecast <- get_optimal_forecast(forecasts)
+    
+    output$revenue_plot <- renderPlot({
+      print(plot_revenue_forecasts(optimal_forecast,
+                                   input$product_name,
+                                   data_to_arima,
+                                   plot_font_size)
+      )
+    })
+    
+    output$demand_plot <- renderPlot({
+      plot_quantity_forecasts(optimal_forecast,
+                              input$product_name,
+                              data_to_arima,
+                              plot_font_size)
+    })
+    output$price_rev_plot <- renderPlot({
+      plot_revenue_price(forecasts,
+                         input$product_name,
+                         data_to_arima,
+                         plot_font_size)
+    })
+    
     # Switch tab to results after optimizing
     updateTabItems(session, "menu", "results")
   })
@@ -241,18 +229,6 @@ server <- function(input, output, session){
   output$rfm_monetary_segments <- renderPlot({
     rfm_monetary_segments
   }, height = 600, width = 750)
-  
-  output$revenue_plot <- renderPlot({
-    update_data()
-  })
-  
-  output$demand_plot <- renderPlot({
-    demand_forecast()
-  })
-  output$price_rev_plot <- renderPlot({
-    price_revenue()
-  })
 }
 
 shinyApp(ui, server)
-c("BIG DOUGHNUT FRIDGE MAGNETS")
