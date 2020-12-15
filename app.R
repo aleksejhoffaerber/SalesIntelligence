@@ -262,6 +262,14 @@ server <- function(input, output, session){
     
     # Close optimizing popup
     closeAlert()
+    
+    # Alert if forecasts unavailable
+    if(length(optimal_forecast$pred_revenue) == 0){
+      shinyalert(
+        "Forecasts or optimization could not be done for this product",
+        type = "error")
+    }
+    
   })
 }
 
